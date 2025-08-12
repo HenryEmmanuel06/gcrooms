@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden text-white h-[730px]" style={{
+    <section className="relative overflow-hidden text-white h-[770px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -542,13 +542,12 @@ export default function HeroSection() {
           </div>
 
           <div 
-            className="inline-flex  items-center justify-center mx-auto -mt-[25px]"
+            className="inline-flex items-center justify-center mx-auto mt-[670px]"
           >
             <Image
               src="/images/hero image.png"
               alt="Friends on a couch"
-              width={1000}
-              height={700}
+              fill
               className="object-contain w-[90%] max-w-[1000px]"
               priority
             />
