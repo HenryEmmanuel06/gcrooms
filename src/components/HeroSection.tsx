@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden text-white h-[685px]" style={{
+    <section className="relative overflow-hidden text-white h-[730px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -506,13 +506,13 @@ export default function HeroSection() {
       </div>
 
       <div className="relative mx-auto w-[90%] max-w-[1000px] pt-24 pb-12 sm:pt-28 sm:pb-16">
-        <div className="-mt-[80px]">
+        <div className="-mt-[50px]">
           <img src="/images/hero vector.svg" alt="" />
         </div>
-        <div className="flex flex-col items-center -mt-[190px]">
+        <div className="flex flex-col items-center -mt-[170px]">
           <div className="text-center z-50">
             
-            <h1 className="text-[54px] sm:text-5xl font-extrabold leading-tight" style={{
+            <h1 className="text-[54px] sm:text-5xl font-extrabold leading-none" style={{
               letterSpacing: "2px"
             }}>
               Lets help you find your dream
@@ -542,13 +542,14 @@ export default function HeroSection() {
           </div>
 
           <div 
-            className="mx-auto mt-[625px]"
+            className="inline-flex  items-center justify-center mx-auto -mt-[25px]"
           >
             <Image
               src="/images/hero image.png"
               alt="Friends on a couch"
-              fill
-              className="object-contain"
+              width={1000}
+              height={700}
+              className="object-contain w-[90%] max-w-[1000px]"
               priority
             />
           </div>
