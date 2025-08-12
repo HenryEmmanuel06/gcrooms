@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden text-white h-[850px]" style={{
+    <section className="relative overflow-hidden text-white h-[685px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -505,11 +505,11 @@ export default function HeroSection() {
         />
       </div>
 
-      <div className="relative mx-auto w-[90%] max-w-[1200px] pt-24 pb-12 sm:pt-28 sm:pb-16">
+      <div className="relative mx-auto w-[90%] max-w-[1000px] pt-24 pb-12 sm:pt-28 sm:pb-16">
         <div className="-mt-[80px]">
           <img src="/images/hero vector.svg" alt="" />
         </div>
-        <div className="flex flex-col items-center -mt-[230px]">
+        <div className="flex flex-col items-center -mt-[190px]">
           <div className="text-center z-50">
             
             <h1 className="text-[54px] sm:text-5xl font-extrabold leading-tight" style={{
@@ -522,13 +522,16 @@ export default function HeroSection() {
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="#list-room"
-                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow hover:brightness-95 transition"
+                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow hover:brightness-95 transition font-semibold"
+                style={{
+                  boxShadow: "0px 0px 10px 0px #660ED180"
+                }}
               >
                 List your room
               </Link>
               <Link
                 href="#view-apartments"
-                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#10D1C1] text-black px-6 py-3 shadow hover:brightness-95 transition"
+                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow hover:brightness-95 transition"
                 style={{
                   boxShadow: "box-shadow: 0px 0px 10px 0px #660ED180",
                 }}
@@ -538,8 +541,8 @@ export default function HeroSection() {
             </div>
           </div>
 
-          <motion.div 
-            className="w-[90%] max-w-[1000px] mx-auto mt-[830px]"
+          <div 
+            className="mx-auto mt-[625px]"
           >
             <Image
               src="/images/hero image.png"
@@ -548,7 +551,7 @@ export default function HeroSection() {
               className="object-contain"
               priority
             />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

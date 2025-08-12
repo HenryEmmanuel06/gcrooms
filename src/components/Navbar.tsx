@@ -27,7 +27,7 @@ export default function Navbar() {
           <div className="hidden md:block ml-[65px] text-[16px]">
             <Link
               href="#login"
-              className="inline-flex border border-[#FFBE06] items-center rounded-[50px] bg-[#10D1C1] text-[#222] font-medium px-5 py-2 shadow-sm transition-colors"
+              className="inline-flex border border-[#FFBE06] items-center rounded-[50px] bg-[#10D1C1] text-[#222] font-medium px-[35px] py-2 shadow-sm transition-colors"
               style={{
                 boxShadow: "box-shadow: 0px 0px 10px 0px #660ED180",
               }}
