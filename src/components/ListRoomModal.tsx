@@ -43,6 +43,22 @@ interface FormData {
   longitude?: string;
 }
 
+interface RoomData {
+  property_title: string;
+  location: string;
+  price: number;
+  bathrooms: number;
+  room_size: number;
+  furniture: string;
+  wifi_zone: boolean;
+  description: string;
+  room_features: string;
+  building_type: string;
+  latitude: number;
+  longitude: number;
+  created_at: string;
+}
+
 interface ListRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -119,6 +135,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       // Silently handle errors - don't show suggestions if API fails
       setLocationSuggestions([]);
       setShowSuggestions(false);
+      console.log(error);
+      
     }
   };
 
@@ -163,7 +181,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const testDatabaseConnection = async () => {
     try {
       // Try to select from the rooms table to see if it exists and is accessible
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('rooms')
         .select('*')
         .limit(1);
@@ -179,7 +197,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   };
 
   // Function to handle room insertion
-  const insertRoomData = async (roomData: any) => {
+  const insertRoomData = async (roomData: RoomData) => {
     try {
       const { data, error } = await supabase
         .from('rooms')
@@ -236,7 +254,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       await testDatabaseConnection();
 
       // Insert the room data
-      const result = await insertRoomData(roomData);
+      // const result = await insertRoomData(roomData);
 
       alert('Room listed successfully!');
       onClose();
