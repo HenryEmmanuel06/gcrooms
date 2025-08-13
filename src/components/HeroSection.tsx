@@ -3,8 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import ListRoomModal from "./ListRoomModal";
 
 export default function HeroSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <section className="relative overflow-hidden text-white h-[770px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
@@ -520,15 +524,15 @@ export default function HeroSection() {
               roommate with ease!
             </h1>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="#list-room"
+              <button
+                onClick={() => setIsModalOpen(true)}
                 className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow hover:brightness-95 transition font-semibold"
                 style={{
                   boxShadow: "0px 0px 10px 0px #660ED180"
                 }}
               >
                 List your room
-              </Link>
+              </button>
               <Link
                 href="#view-apartments"
                 className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow hover:brightness-95 transition"
@@ -554,6 +558,12 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+
+      {/* List Room Modal */}
+      <ListRoomModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </section>
   );
 }

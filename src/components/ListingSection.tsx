@@ -18,7 +18,7 @@ export default function ListingSection() {
               We guide our clients through every step of the buying and selling process.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-[30px]">
               <Link
                 href="#list-room"
                 className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition"
