@@ -33,6 +33,7 @@ interface FormData {
   location: string;
   price: string;
   bathrooms: string;
+  bedrooms: string;
   room_size: string;
   furniture: string;
   wifi_zone: boolean;
@@ -48,6 +49,7 @@ interface RoomData {
   location: string;
   price: number;
   bathrooms: number;
+  bedrooms: number;
   room_size: number;
   furniture: string;
   wifi_zone: boolean;
@@ -75,6 +77,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     location: '',
     price: '',
     bathrooms: '',
+    bedrooms: '',
     room_size: '',
     furniture: '',
     wifi_zone: false,
@@ -249,50 +252,52 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
         throw new Error('Please select a location from the suggestions');
       }
 
-             const roomData = {
-         property_title: formData.property_title.trim(),
-         location: formData.location.trim(),
-         price: parseFloat(formData.price),
-         bathrooms: parseFloat(formData.bathrooms) || 0,
-         room_size: parseFloat(formData.room_size) || 0,
-         furniture: formData.furniture,
-         wifi_zone: formData.wifi_zone,
-         description: formData.description.trim(),
-         room_features: formData.room_features.trim(),
-         building_type: formData.building_type,
-         latitude: parseFloat(selectedLocation.lat),
-         longitude: parseFloat(selectedLocation.lon),
-         created_at: new Date().toISOString(),
-         room_img_1: uploadedImages[0] || undefined,
-         room_img_2: uploadedImages[1] || undefined,
-         room_img_3: uploadedImages[2] || undefined,
-         room_img_4: uploadedImages[3] || undefined,
-         room_img_5: uploadedImages[4] || undefined,
-       };
+      const roomData: RoomData = {
+        property_title: formData.property_title,
+        location: formData.location,
+        price: parseFloat(formData.price),
+        bathrooms: parseFloat(formData.bathrooms),
+        bedrooms: parseFloat(formData.bedrooms) || 0,
+        room_size: parseFloat(formData.room_size),
+        furniture: formData.furniture,
+        wifi_zone: formData.wifi_zone,
+        description: formData.description,
+        room_features: formData.room_features,
+        building_type: formData.building_type,
+        latitude: parseFloat(selectedLocation.lat),
+        longitude: parseFloat(selectedLocation.lon),
+        created_at: new Date().toISOString(),
+        room_img_1: uploadedImages[0] || undefined,
+        room_img_2: uploadedImages[1] || undefined,
+        room_img_3: uploadedImages[2] || undefined,
+        room_img_4: uploadedImages[3] || undefined,
+        room_img_5: uploadedImages[4] || undefined,
+      };
 
       // Test database connection first
       await testDatabaseConnection();
 
-             // Insert the room data
-       const result = await insertRoomData(roomData);
+      // Insert the room data
+      const result = await insertRoomData(roomData);
 
       alert('Room listed successfully!');
       onClose();
-             setFormData({
-         property_title: '',
-         location: '',
-         price: '',
-         bathrooms: '',
-         room_size: '',
-         furniture: '',
-         wifi_zone: false,
-         description: '',
-         room_features: '',
-         building_type: '',
-       });
-       setSelectedLocation(null);
-       setShowMap(false);
-       setUploadedImages([]);
+      setFormData({
+        property_title: '',
+        location: '',
+        price: '',
+        bathrooms: '',
+        bedrooms: '',
+        room_size: '',
+        furniture: '',
+        wifi_zone: false,
+        description: '',
+        room_features: '',
+        building_type: '',
+      });
+      setSelectedLocation(null);
+      setShowMap(false);
+      setUploadedImages([]);
     } catch (error) {
       // Show more detailed error information
       if (error instanceof Error) {
@@ -546,6 +551,22 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     placeholder="Enter number of bathrooms"
                     min="0"
                     step="0.5"
+                  />
+                </div>
+
+                {/* Bedrooms */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Bedrooms
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.bedrooms}
+                    onChange={(e) => handleInputChange('bedrooms', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    placeholder="Enter number of bedrooms"
+                    min="0"
+                    step="1"
                   />
                 </div>
 
