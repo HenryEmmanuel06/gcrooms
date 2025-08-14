@@ -57,6 +57,11 @@ interface RoomData {
   latitude: number;
   longitude: number;
   created_at: string;
+  room_img_1?: string;
+  room_img_2?: string;
+  room_img_3?: string;
+  room_img_4?: string;
+  room_img_5?: string;
 }
 
 interface ListRoomModalProps {
@@ -80,12 +85,16 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLocationSearching, setIsLocationSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: string; lon: string } | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -116,8 +125,12 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     if (query.length < 3) {
       setLocationSuggestions([]);
       setShowSuggestions(false);
+      setIsLocationSearching(false);
       return;
     }
+
+    setIsLocationSearching(true);
+    setShowSuggestions(true);
 
     try {
       const response = await fetch(
@@ -130,11 +143,12 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       
       const data = await response.json();
       setLocationSuggestions(data);
-      setShowSuggestions(true);
+      setIsLocationSearching(false);
     } catch (error) {
       // Silently handle errors - don't show suggestions if API fails
       setLocationSuggestions([]);
       setShowSuggestions(false);
+      setIsLocationSearching(false);
       console.log(error);
       
     }
@@ -148,6 +162,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     if (!value.trim()) {
       setLocationSuggestions([]);
       setShowSuggestions(false);
+      setIsLocationSearching(false);
       setSelectedLocation(null);
       setShowMap(false);
       return;
@@ -234,44 +249,50 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
         throw new Error('Please select a location from the suggestions');
       }
 
-      const roomData = {
-        property_title: formData.property_title.trim(),
-        location: formData.location.trim(),
-        price: parseFloat(formData.price),
-        bathrooms: parseFloat(formData.bathrooms) || 0,
-        room_size: parseFloat(formData.room_size) || 0,
-        furniture: formData.furniture,
-        wifi_zone: formData.wifi_zone,
-        description: formData.description.trim(),
-        room_features: formData.room_features.trim(),
-        building_type: formData.building_type,
-        latitude: parseFloat(selectedLocation.lat),
-        longitude: parseFloat(selectedLocation.lon),
-        created_at: new Date().toISOString(),
-      };
+             const roomData = {
+         property_title: formData.property_title.trim(),
+         location: formData.location.trim(),
+         price: parseFloat(formData.price),
+         bathrooms: parseFloat(formData.bathrooms) || 0,
+         room_size: parseFloat(formData.room_size) || 0,
+         furniture: formData.furniture,
+         wifi_zone: formData.wifi_zone,
+         description: formData.description.trim(),
+         room_features: formData.room_features.trim(),
+         building_type: formData.building_type,
+         latitude: parseFloat(selectedLocation.lat),
+         longitude: parseFloat(selectedLocation.lon),
+         created_at: new Date().toISOString(),
+         room_img_1: uploadedImages[0] || undefined,
+         room_img_2: uploadedImages[1] || undefined,
+         room_img_3: uploadedImages[2] || undefined,
+         room_img_4: uploadedImages[3] || undefined,
+         room_img_5: uploadedImages[4] || undefined,
+       };
 
       // Test database connection first
       await testDatabaseConnection();
 
-      // Insert the room data
-      // const result = await insertRoomData(roomData);
+             // Insert the room data
+       const result = await insertRoomData(roomData);
 
       alert('Room listed successfully!');
       onClose();
-      setFormData({
-        property_title: '',
-        location: '',
-        price: '',
-        bathrooms: '',
-        room_size: '',
-        furniture: '',
-        wifi_zone: false,
-        description: '',
-        room_features: '',
-        building_type: '',
-      });
-      setSelectedLocation(null);
-      setShowMap(false);
+             setFormData({
+         property_title: '',
+         location: '',
+         price: '',
+         bathrooms: '',
+         room_size: '',
+         furniture: '',
+         wifi_zone: false,
+         description: '',
+         room_features: '',
+         building_type: '',
+       });
+       setSelectedLocation(null);
+       setShowMap(false);
+       setUploadedImages([]);
     } catch (error) {
       // Show more detailed error information
       if (error instanceof Error) {
@@ -300,6 +321,102 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   // Handle input change
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Compress image using Tinify
+  const compressImage = async (file: File): Promise<Blob> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/compress-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Image compression failed');
+      }
+
+      return await response.blob();
+    } catch (error) {
+      throw new Error('Failed to compress image');
+    }
+  };
+
+  // Upload image to Supabase Storage
+  const uploadImageToStorage = async (file: Blob, fileName: string): Promise<string> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('rooms_image')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('rooms_image')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      throw new Error('Failed to upload image');
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (files: FileList) => {
+    if (uploadedImages.length >= 5) {
+      alert('Maximum 5 images allowed');
+      return;
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const fileArray = Array.from(files);
+      const newImages: string[] = [];
+
+      for (let i = 0; i < fileArray.length && uploadedImages.length + newImages.length < 5; i++) {
+        const file = fileArray[i];
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          continue;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          continue;
+        }
+
+        // Compress image
+        const compressedBlob = await compressImage(file);
+        
+        // Generate unique filename
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+        
+        // Upload to storage
+        const imageUrl = await uploadImageToStorage(compressedBlob, fileName);
+        newImages.push(imageUrl);
+      }
+
+      setUploadedImages(prev => [...prev, ...newImages]);
+    } catch (error) {
+      alert('Failed to upload images. Please try again.');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  // Remove image
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -366,21 +483,35 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   />
                   
                   {/* Location Suggestions */}
-                  {showSuggestions && locationSuggestions.length > 0 && (
+                  {showSuggestions && (
                     <div
                       ref={suggestionsRef}
                       className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
                     >
-                      {locationSuggestions.map((suggestion, index) => (
-                                                 <button
-                           key={index}
-                           type="button"
-                           onClick={() => handleLocationSelect(suggestion)}
-                           className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-black"
-                         >
-                           {suggestion.display_name}
-                         </button>
-                      ))}
+                      {isLocationSearching ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
+                        </div>
+                      ) : locationSuggestions.length > 0 ? (
+                        locationSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleLocationSelect(suggestion)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-black"
+                          >
+                            {suggestion.display_name}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-gray-500 text-sm">
+                          No locations found
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -502,19 +633,83 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                 />
               </div>
 
-              {/* Room Features */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Room Features
-                </label>
-                <textarea
-                  value={formData.room_features}
-                  onChange={(e) => handleInputChange('room_features', e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                  placeholder="List additional features (e.g., balcony, parking, gym access...)"
-                />
-              </div>
+                             {/* Room Features */}
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Room Features
+                 </label>
+                 <textarea
+                   value={formData.room_features}
+                   onChange={(e) => handleInputChange('room_features', e.target.value)}
+                   rows={3}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                   placeholder="List additional features (e.g., balcony, parking, gym access...)"
+                 />
+               </div>
+
+               {/* Room Images */}
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Room Images (Max 5)
+                 </label>
+                 
+                 {/* File Input */}
+                 <input
+                   ref={fileInputRef}
+                   type="file"
+                   multiple
+                   accept="image/*"
+                   onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                   className="hidden"
+                 />
+                 
+                 {/* Upload Button */}
+                 <button
+                   type="button"
+                   onClick={() => fileInputRef.current?.click()}
+                   disabled={uploadedImages.length >= 5 || uploadingImages}
+                   className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-[#10D1C1] hover:text-[#10D1C1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
+                   {uploadingImages ? (
+                     <span className="flex items-center justify-center">
+                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#10D1C1]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                       </svg>
+                       Uploading...
+                     </span>
+                   ) : (
+                     <span className="flex items-center justify-center">
+                       <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                       </svg>
+                       {uploadedImages.length >= 5 ? 'Maximum images reached' : 'Upload Images'}
+                     </span>
+                   )}
+                 </button>
+                 
+                 {/* Image Preview Grid */}
+                 {uploadedImages.length > 0 && (
+                   <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                     {uploadedImages.map((imageUrl, index) => (
+                       <div key={index} className="relative group">
+                         <img
+                           src={imageUrl}
+                           alt={`Room image ${index + 1}`}
+                           className="w-full h-32 object-cover rounded-lg"
+                         />
+                         <button
+                           type="button"
+                           onClick={() => removeImage(index)}
+                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                           ×
+                         </button>
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </div>
 
               {/* Map Display */}
               {showMap && selectedLocation && (

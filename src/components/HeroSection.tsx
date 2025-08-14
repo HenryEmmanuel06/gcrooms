@@ -511,7 +511,10 @@ export default function HeroSection() {
 
       <div className="relative mx-auto w-[90%] max-w-[1000px] pt-24 pb-12 sm:pt-28 sm:pb-16">
         <div className="-mt-[50px]">
-          <Image src="/images/hero vector.svg" alt="" />
+          <Image src="/images/hero vector.svg" alt="" 
+          width={1400}
+          height={320}
+          />
         </div>
         <div className="flex flex-col items-center -mt-[170px]">
           <div className="text-center z-50">
