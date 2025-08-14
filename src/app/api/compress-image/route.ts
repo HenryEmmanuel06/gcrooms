@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const result = await Tinify.fromBuffer(buffer).toBuffer();
 
     // Return compressed image as blob
-    return new NextResponse(result, {
+    return new NextResponse(Buffer.from(result), {
       headers: {
         'Content-Type': 'image/jpeg',
         'Content-Length': result.length.toString(),
