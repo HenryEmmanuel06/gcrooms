@@ -32,6 +32,7 @@ interface Room {
   bedrooms: number;
   room_size: number;
   room_img_1?: string;
+  state: string;
 }
 
 // Generate URL slug from property title
@@ -130,7 +131,7 @@ export default function ListingSection() {
       </div>
 
       {/* Room Listings Section */}
-      <div className="mt-[75px] mx-auto max-w-[1300px]">
+      <div className="mt-[75px] mx-auto w-[90%] max-w-[1350px]">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="flex space-x-2">
@@ -168,6 +169,14 @@ export default function ListingSection() {
             {rooms.map((room) => (
               <SwiperSlide key={room.id}>
                 <div className="group bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden my-3 cursor-pointer">
+                  <div className="absolute top-[35px] rounded-[5px] right-[25px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
+                  <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M6.00004 1.16669C4.76236 1.16669 3.57538 1.65835 2.70021 2.53352C1.82504 3.40869 1.33337 4.59568 1.33337 5.83335C1.33337 6.93702 1.56787 7.65919 2.20837 8.45835L6.00004 12.8334L9.79171 8.45835C10.4322 7.65919 10.6667 6.93702 10.6667 5.83335C10.6667 4.59568 10.175 3.40869 9.29987 2.53352C8.4247 1.65835 7.23772 1.16669 6.00004 1.16669Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
+
+                    <span className="text-[12px] text-black">{room.state}</span>
+                  </div>
                   {/* Room Image */}
                   <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
                     {room.room_img_1 ? (
@@ -205,12 +214,10 @@ export default function ListingSection() {
                       {room.property_title}
                     </h4>
 
-                    <div className="flex items-end h-[45px] justify-between transition-all duration-700 group-hover:flex-col group-hover:items-start" style={{
-                      transition: 'all 1s ease-in-out',
-                    }}>
+                    <div className="flex items-end h-[45px] justify-between transition-all group-hover:flex-col group-hover:items-start">
                       {/* Price - moves up and expands on hover */}
                       <div className="">
-                        <div className="bg-[#FFBE06] text-[16px] text-black px-[25px] py-[10px] rounded-full font-semibold group-hover:px-[35px] group-hover:min-w-[120px] transition-all duration-300">
+                        <div className="bg-[#FFBE06] text-[16px] text-black px-[25px] py-[10px] rounded-full font-semibold group-hover:px-[35px] group-hover:min-w-[120px] transition-all duration-500 ease-in-out">
                           <span className="group-hover:hidden">{formatPrice(room.price)}</span>
                           <span className="hidden group-hover:inline">₦{room.price.toLocaleString()}</span>
                         </div>
@@ -219,7 +226,7 @@ export default function ListingSection() {
                       {/* Room Details - slide in on hover */}
 
                       <div className="flex flex-col relative right-[30px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
-                        <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[100%]">
+                        <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[0%]">
                           <div className="flex items-center space-x-[10px] text-sm text-gray-600">
                             {/* Bathrooms */}
                             <div className="group flex items-center space-x-1 bg-[#F5D4FF] p-[11px] text-black rounded-[5px] transition-all duration-300">

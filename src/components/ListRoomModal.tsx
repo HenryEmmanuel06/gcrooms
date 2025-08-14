@@ -22,6 +22,15 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Nigerian States
+const NIGERIAN_STATES = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
+  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe',
+  'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara',
+  'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
+  'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
+];
+
 interface LocationSuggestion {
   display_name: string;
   lat: string;
@@ -31,6 +40,7 @@ interface LocationSuggestion {
 interface FormData {
   property_title: string;
   location: string;
+  state: string;
   price: string;
   bathrooms: string;
   bedrooms: string;
@@ -47,6 +57,7 @@ interface FormData {
 interface RoomData {
   property_title: string;
   location: string;
+  state: string;
   price: number;
   bathrooms: number;
   bedrooms: number;
@@ -75,6 +86,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [formData, setFormData] = useState<FormData>({
     property_title: '',
     location: '',
+    state: '',
     price: '',
     bathrooms: '',
     bedrooms: '',
@@ -255,6 +267,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       const roomData: RoomData = {
         property_title: formData.property_title,
         location: formData.location,
+        state: formData.state,
         price: parseFloat(formData.price),
         bathrooms: parseFloat(formData.bathrooms),
         bedrooms: parseFloat(formData.bedrooms) || 0,
@@ -285,6 +298,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       setFormData({
         property_title: '',
         location: '',
+        state: '',
         price: '',
         bathrooms: '',
         bedrooms: '',
@@ -519,6 +533,26 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* State */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State *
+                  </label>
+                  <select
+                    required
+                    value={formData.state}
+                    onChange={(e) => handleInputChange('state', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                  >
+                    <option value="">Select state</option>
+                    {NIGERIAN_STATES.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Price */}
