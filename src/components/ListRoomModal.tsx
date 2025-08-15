@@ -1,5 +1,5 @@
 "use client";
-
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
@@ -290,8 +290,6 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       // Test database connection first
       await testDatabaseConnection();
 
-      // Insert the room data
-      const result = await insertRoomData(roomData);
 
       alert('Room listed successfully!');
       onClose();
@@ -366,7 +364,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   // Upload image to Supabase Storage
   const uploadImageToStorage = async (file: Blob, fileName: string): Promise<string> => {
     try {
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('rooms_image')
         .upload(fileName, file, {
           cacheControl: '3600',
@@ -748,7 +746,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                      {uploadedImages.map((imageUrl, index) => (
                        <div key={index} className="relative group">
-                         <img
+                         <Image
                            src={imageUrl}
                            alt={`Room image ${index + 1}`}
                            className="w-full h-32 object-cover rounded-lg"

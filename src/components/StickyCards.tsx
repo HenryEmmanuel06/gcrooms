@@ -1,7 +1,6 @@
 // components/StickyCards.tsx
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import ListRoomModal from "./ListRoomModal";
@@ -47,25 +46,22 @@ export default function StickyCards() {
     offset: ["start start", "end start"],
   });
 
-  // Generate transform values dynamically for each card
-  const getCardTransforms = (index: number) => {
-    let cardY, cardScale;
+  // Transform values for each card
+  const card1Y = useTransform(scrollYProgress, [0, 1], ["0%", "0%"]);
+  const card1Scale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+  
+  const card2Y = useTransform(scrollYProgress, [0, 0.5, 1], ["110%", "50%", "50%"]);
+  const card2Scale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
+  
+  const card3Y = useTransform(scrollYProgress, [0, 0.5, 1], ["220%", "110%", "50%"]);
+  const card3Scale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
 
-    if (index === 0) {
-        // First card stays fixed
-        cardY = useTransform(scrollYProgress, [0, 1], ["0%", "0%"]);
-        cardScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
-      } else if (index === 1) {
-        // Second card starts with 10% gap, moves up to cover half of the first
-        cardY = useTransform(scrollYProgress, [0, 0.5, 1], ["110%", "50%", "50%"]);
-        cardScale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
-      } else if (index === 2) {
-        // Third card starts with 20% gap, moves up to cover half of the second
-        cardY = useTransform(scrollYProgress, [0, 0.5, 1], ["220%", "110%", "50%"]);
-        cardScale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
-      }
-    
-    return { cardY, cardScale };
+  // Get transforms for each card by index
+  const getCardTransforms = (index: number) => {
+    if (index === 0) return { cardY: card1Y, cardScale: card1Scale };
+    if (index === 1) return { cardY: card2Y, cardScale: card2Scale };
+    if (index === 2) return { cardY: card3Y, cardScale: card3Scale };
+    return { cardY: card1Y, cardScale: card1Scale }; // fallback
   };
 const [isModalOpen, setIsModalOpen] = useState(false);
   return (
