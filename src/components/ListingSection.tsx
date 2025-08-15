@@ -131,7 +131,7 @@ export default function ListingSection() {
       </div>
 
       {/* Room Listings Section */}
-      <div className="mt-[75px] mx-auto w-[90%] max-w-[1350px]">
+      <div className="mt-[75px] mx-auto w-[90%] max-w-[1320px]">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="flex space-x-2">
@@ -225,8 +225,8 @@ export default function ListingSection() {
 
                       {/* Room Details - slide in on hover */}
 
-                      <div className="flex flex-col relative right-[30px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
-                        <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[0%]">
+                      <div className="flex flex-col relative right-[30px] lg:right-[45px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
+                        <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[100%]">
                           <div className="flex items-center space-x-[10px] text-sm text-gray-600">
                             {/* Bathrooms */}
                             <div className="group flex items-center space-x-1 bg-[#F5D4FF] p-[11px] text-black rounded-[5px] transition-all duration-300">
