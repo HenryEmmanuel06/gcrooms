@@ -175,7 +175,7 @@ export default function ListingSection() {
 <path d="M6.00004 1.16669C4.76236 1.16669 3.57538 1.65835 2.70021 2.53352C1.82504 3.40869 1.33337 4.59568 1.33337 5.83335C1.33337 6.93702 1.56787 7.65919 2.20837 8.45835L6.00004 12.8334L9.79171 8.45835C10.4322 7.65919 10.6667 6.93702 10.6667 5.83335C10.6667 4.59568 10.175 3.40869 9.29987 2.53352C8.4247 1.65835 7.23772 1.16669 6.00004 1.16669Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 
-                    <span className="text-[12px] text-black">{room.state}</span>
+                    <span className="text-[12px] text-black">{room.state.trim().replace(/\b\w/g, (char) => char.toUpperCase())}</span>
                   </div>
                   {/* Room Image */}
                   <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
