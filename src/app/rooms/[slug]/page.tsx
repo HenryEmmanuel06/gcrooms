@@ -1,13 +1,13 @@
 import Navbar from "@/components/Navbar";
 
 interface RoomPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function RoomPage({ params }: RoomPageProps) {
-  const { slug } = params;
+export default async function RoomPage({ params }: RoomPageProps) {
+  const { slug } = await params;
   
   // Extract room ID from slug (last part after the last dash)
   const roomId = slug.split('-').pop();

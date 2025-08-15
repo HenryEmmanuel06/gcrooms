@@ -290,6 +290,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       // Test database connection first
       await testDatabaseConnection();
 
+      // Insert the room data
+      await insertRoomData(roomData);
 
       alert('Room listed successfully!');
       onClose();
@@ -357,6 +359,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
       return await response.blob();
     } catch (error) {
+      console.error('Image compression error:', error);
       throw new Error('Failed to compress image');
     }
   };
@@ -382,6 +385,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
       return urlData.publicUrl;
     } catch (error) {
+      console.error('Image upload error:', error);
       throw new Error('Failed to upload image');
     }
   };
@@ -425,6 +429,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
       setUploadedImages(prev => [...prev, ...newImages]);
     } catch (error) {
+      console.error('Image upload error:', error);
       alert('Failed to upload images. Please try again.');
     } finally {
       setUploadingImages(false);
