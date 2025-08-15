@@ -5,12 +5,12 @@ import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import { createClient } from '@supabase/supabase-js';
+import ListRoomModal from "./ListRoomModal";
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { div } from "framer-motion/client";
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -88,6 +88,7 @@ export default function ListingSection() {
     fetchRooms();
   }, []);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <section className="bg-white py-[70px] sm:py-20">
       <div className="mx-auto w-[90%] max-w-[1165px]">
@@ -106,16 +107,15 @@ export default function ListingSection() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-[30px]">
-              <Link
-                href="#list-room"
+              <button
+                onClick={() => setIsModalOpen(true)}
                 className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition"
                 style={{
                   boxShadow: "0px 0px 10px 0px #660ED180"
                 }}
               >
-                List Your Room
-              </Link>
-
+                List your room
+              </button>
               <Link
                 href="#view-apartments"
                 className="inline-flex border-[1.5px] border-[#10D1C1] items-center justify-center rounded-full text-black px-6 py-3 transition"
@@ -197,7 +197,7 @@ export default function ListingSection() {
                     {/* Overlay */}
                     <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <Link
-                        href={`/property/${generateSlug(room.property_title, room.id)}`}
+                        href={`/rooms/${generateSlug(room.property_title, room.id)}`}
                         className="bg-[#10D1C1] text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
                       >
                         <span>Go to property</span>
@@ -379,6 +379,10 @@ export default function ListingSection() {
           </div>
         )}
       </div>
+       <ListRoomModal 
+              isOpen={isModalOpen} 
+              onClose={() => setIsModalOpen(false)} 
+        />  
     </section>
   );
 }

@@ -1,7 +1,9 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ListingSection from "@/components/ListingSection";
+import OurProcess from "@/components/OurProcess";
 import WhyUs from "@/components/WhyUs";
+import StickyCards from "@/components/StickyCards";
 
 export default function Home() {
   return (
@@ -10,6 +12,9 @@ export default function Home() {
       <HeroSection />
       <ListingSection />
       <WhyUs />
+      <StickyCards />
+      <OurProcess />
+      
     </main>
   );
 }
