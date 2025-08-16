@@ -126,7 +126,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
        
     </section>
 <section className="w-[100%] max-w-[1300px] mx-auto block lg:hidden bg-[#ffff]">
-<div className="w-full bg-[#ffff]">
+<div className="w-[90%] bg-[#ffff]">
         <h2 className="text-[30px] md:text-[36px] font-bold text-black">Got A Room To List?</h2>
         <p className="text-[30px] md:text-[36px] text-black font-light leading-none max-w-[361px]">See how others earn on grooms</p>
         <button
