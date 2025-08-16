@@ -107,9 +107,9 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                 </p>
               </div>
 
-              <div className="flex items-center w-[212px] h-[180px]" style={
+              <div className="flex items-center w-[212px] h-[180px] " style={
                 {
-                  backgroundImage: `url(${card.image})`,
+                  backgroundImage: `url('${card.image}')`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   borderRadius: "10px",

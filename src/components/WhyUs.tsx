@@ -121,10 +121,16 @@ export default function WhyUs() {
     router.push(`/rooms/${slug}`);
   };
   return (
-    <section className="bg-white py-16 sm:py-20">
+    <section className="bg-white py-23 sm:py-20" style={{
+      backgroundImage: "url('images/why-us-bg.svg')",
+      backgroundSize: "cover",
+      backgroundPositionX: "center",
+      backgroundPositionY: "-200px",
+      backgroundRepeat: "no-repeat",
+    }}>
       <div className="mx-auto w-[90%] max-w-[1155px]">
         {/* Section Title */}
-        <h2 className="text-[40px] sm:text-5xl font-bold text-black text-center mb-[60px]">
+        <h2 className="text-[40px] sm:text-5xl font-bold text-black text-center mb-[60px] pt-15">
           Why gcrooms?
         </h2>
 

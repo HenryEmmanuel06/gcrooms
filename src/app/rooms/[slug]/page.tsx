@@ -1,5 +1,3 @@
-import Navbar from "@/components/Navbar";
-
 interface RoomPageProps {
   params: Promise<{
     slug: string;
@@ -13,9 +11,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
   const roomId = slug.split('-').pop();
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="pt-20">
+    <div className="pt-20">
         {/* Page Header */}
         <div className="bg-white py-12">
           <div className="mx-auto w-[90%] max-w-[1200px]">
@@ -49,7 +45,6 @@ export default async function RoomPage({ params }: RoomPageProps) {
             </div>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   );
 }
