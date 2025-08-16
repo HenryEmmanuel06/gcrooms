@@ -46,7 +46,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="pb-[86px]">
+    <section className="pb-[86px] bg-[#ffffff]">
         {/* Section Title */}
         <h2 className="text-[32px] md:text-[40px] font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
         Frequently Asked Questions
