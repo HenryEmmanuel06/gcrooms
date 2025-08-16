@@ -10,7 +10,7 @@ export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden text-white h-[770px]" style={{
+    <section className="relative overflow-hidden text-white lg:h-[770px] h-[500px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -516,15 +516,13 @@ export default function HeroSection() {
           height={320}
           />
         </div>
-        <div className="flex flex-col items-center -mt-[170px]">
+        <div className="flex flex-col items-center -mt-[20px] md:-mt-[100px] lg:-mt-[170px]">
           <div className="text-center z-50">
             
-            <h1 className="text-[54px] sm:text-5xl font-extrabold leading-none" style={{
+            <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-none" style={{
               letterSpacing: "2px"
             }}>
-              Lets help you find your dream
-              <br />
-              roommate with ease!
+              Lets help you find your dream roommate with ease!
             </h1>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -549,7 +547,7 @@ export default function HeroSection() {
           </div>
 
           <div 
-            className="inline-flex items-center justify-center mx-auto mt-[670px]"
+            className="items-center justify-center mx-auto mt-[670px] hidden lg:inline-flex"
           >
             <Image
               src="/images/hero image.png"

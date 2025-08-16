@@ -65,9 +65,10 @@ export default function StickyCards() {
   };
 const [isModalOpen, setIsModalOpen] = useState(false);
   return (
+    <>
     <section
       ref={sectionRef}
-      className="relative flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20"
+      className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20"
     >
       {/* LEFT COLUMN */}
       <div className="w-1/3 sticky top-20 h-fit self-start pb-[100px]">
@@ -122,10 +123,61 @@ const [isModalOpen, setIsModalOpen] = useState(false);
           );
         })}
       </div>
+       
+    </section>
+<section className="w-[90%] max-w-[1300px] mx-auto block lg:hidden">
+<div className="w-full">
+        <h2 className="text-[30px] md:text-[36px] font-bold text-black">Got A Room To List?</h2>
+        <p className="text-[30px] md:text-[36px] text-black font-light leading-none max-w-[361px]">See how others earn on grooms</p>
+        <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition mt-[30px]"
+                style={{
+                  boxShadow: "0px 0px 10px 0px #660ED180"
+                }}
+              >
+                List your room
+              </button>
+      </div>
+
+
+      <div className="w-full flex flex-col gap-[20px] mt-[30px]">
+        {cardsData.map((card) => {
+          return (
+            <div
+              key={card.id}
+              style={{ 
+                background: "linear-gradient(124.32deg, #FEFAFF 6.35%, #F7F7F7 45.28%, #F4F0F8 67.39%, #F7F1FF 85.17%, #E4CFFF 108.1%)",
+              }}
+              className=" w-full bg-white shadow-lg rounded-xl p-[30px] flex justify-between flex-col gap-5 md:flex-row border-3 border-[#F2F2F2F7]"
+            >
+              <div className="flex-1 pt-[15px] max-w-[400px]">
+                <h3 className="font-medium text-[20px] md:text-[24px] leading-tight">{card.title}</h3>
+                <p className="text-[14px] md:text-[16px] mt-2 md:mt-0 font-normal">
+                  {card.description}
+                </p>
+              </div>
+
+              <div className="flex items-center w-[150px] h-[120px] md:w-[212px] md:h-[180px] " style={
+                {
+                  backgroundImage: `url('${card.image}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  borderRadius: "10px",
+                  backgroundRepeat: "no-repeat",
+                }
+              }>
+
+              </div>
+            </div>
+          );
+        })}
+      </div>
       <ListRoomModal 
                     isOpen={isModalOpen} 
                     onClose={() => setIsModalOpen(false)} 
-              />  
-    </section>
+              /> 
+</section>
+        </>
   );
 }

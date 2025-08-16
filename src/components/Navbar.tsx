@@ -16,14 +16,14 @@ export default function Navbar() {
 
         {/* Navigation Links and Login Button Container */}
         <div className="flex items-center">
-          <nav className="hidden md:flex items-center gap-[40px] text-[16px] text-white">
+          <nav className="hidden lg:flex items-center gap-[40px] text-[16px] text-white">
             <Link href="#" className="hover:text-white">Home</Link>
             <Link href="#rooms" className="hover:text-white">Rooms</Link>
             <Link href="#faqs" className="hover:text-white">FAQs</Link>
             <Link href="#why" className="hover:text-white">Why GCrooms</Link>
           </nav>
 
-          <div className="hidden md:block ml-[50px] text-[16px]">
+          <div className="hidden lg:block ml-[50px] text-[16px]">
             <Link
               href="#contact-us"
               className="inline-flex border border-[#FFBE06] items-center rounded-[50px] bg-[#10D1C1] text-[#222] font-medium px-[35px] py-2 shadow-sm transition-colors"

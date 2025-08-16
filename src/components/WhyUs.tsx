@@ -121,7 +121,7 @@ export default function WhyUs() {
     router.push(`/rooms/${slug}`);
   };
   return (
-    <section className="bg-white py-23 sm:py-20" style={{
+    <section className="bg-white py-10 md:py-15 lg:py-23" style={{
       backgroundImage: "url('images/why-us-bg.svg')",
       backgroundSize: "cover",
       backgroundPositionX: "center",
@@ -130,7 +130,7 @@ export default function WhyUs() {
     }}>
       <div className="mx-auto w-[90%] max-w-[1155px]">
         {/* Section Title */}
-        <h2 className="text-[40px] sm:text-5xl font-bold text-black text-center mb-[60px] pt-15">
+        <h2 className=" text-[32px] md:text-[40px] font-bold text-black text-center mb-[60px] pt-0 lg:pt-15">
           Why gcrooms?
         </h2>
 
@@ -216,13 +216,13 @@ export default function WhyUs() {
         </div>
       </div>
 
-      <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[120px]" style={{
+      <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[60px] md:mt-[120px]" style={{
         background: "linear-gradient(92.93deg, #9B30DF 0.5%, rgba(102, 14, 209, 0.8) 131.44%)",
       }}>
-        <div className="flex items-center gap-[20px] pl-[40px] pr-[20px] py-[20px]">
-          <div className="">
-            <h2 className="text-[36px] w-[600px] sm:text-5xl font-bold text-white">Diverse rooms suited to your style or pocket</h2>
-            <div className="relative max-w-[470px] mt-[50px]" ref={dropdownRef}>
+        <div className="flex items-center gap-[20px] pl-[15px] pr-[15px] py-[15px] md:pl-[40px] md:pr-[20px] md:py-[20px]">
+          <div className="w-[100%]">
+            <h2 className="lg:text-[36px] md:text-[32px] lg:w-[450px] w-[100%] text-[26px] font-bold text-white leading-tight">Diverse rooms suited to your style or pocket</h2>
+            <div className="relative lg:w-[470px] max-w-[470px] w-[100%] mt-[20px] md:mt-[50px]" ref={dropdownRef}>
               <div className="flex items-center rounded-full bg-white border-1 border-[#fff] overflow-hidden p-1"
               style={{
                 boxShadow: "0px 0px 10px 0px #660ED180",
@@ -232,9 +232,9 @@ export default function WhyUs() {
                     placeholder="Enter your location or state"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="flex-1 px-4 py-2 outline-none text-gray-800 bg-transparent"
+                    className="flex-1 md:px-4 md:py-2 px-2 py-1 outline-none text-gray-800 bg-transparent text-[12px] md:text-[14px]"
                   />
-                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[20px] py-[10px] rounded-full transition-colors text-[14px]"
+                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[10px] py-[5px] md:px-[20px] md:py-[10px] rounded-full transition-colors text-[11px] md:text-[14px]"
                   style={{
                     boxShadow: "0px 0px 10px 0px #660ED180",
                   }}

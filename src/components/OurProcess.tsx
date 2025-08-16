@@ -6,7 +6,7 @@ import Image from "next/image";
 
    export default function OurProcess() {
     return (
-        <section className="bg-white py-16 sm:py-20 ] bg-[url('/images/process-bg.svg')]" style={
+        <section className="bg-white md:py-16 py-0 bg-[url('/images/process-bg.svg')]" style={
             {
                 backgroundSize: "cover",
                 backgroundPositionX: "center",
@@ -16,13 +16,13 @@ import Image from "next/image";
         }>
             <div className="mx-auto w-[90%] max-w-[1200px]">
                 {/* Section Title */}
-                <h2 className="text-[40px] sm:text-5xl font-bold text-black text-center mb-[80px]">
+                <h2 className="md:text-[40px] text-[32px] font-bold text-black text-center mb-[20px] md:mb-[60px] pt-0 lg:pt-15">
                     How it works
                 </h2>
 
                 {/* Process Steps Grid */}
-                <div className="relative grid grid-cols-1 md:grid-cols-2 gap-[60px] lg:gap-[80px] py-[60px]">
-                    <div className="w-full absolute top-0 left-0">
+                <div className="relative grid grid-cols-1 md:grid-cols-2 gap-[20px] lg:gap-[80px] py-[30px] md:py-[60px]">
+                    <div className="w-full absolute hidden lg:block top-0 left-0">
                         <Image
                         src="/images/process-img.svg"
                         alt="Process Image"

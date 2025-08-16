@@ -48,17 +48,17 @@ export default function FaqSection() {
   return (
     <section className="pb-[86px]">
         {/* Section Title */}
-        <h2 className="text-[40px] sm:text-5xl font-bold text-black text-center mb-[80px] pt-15">
+        <h2 className="text-[32px] md:text-[40px] font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
         Frequently Asked Questions
         </h2>
-        <div className="w-[90%] max-w-[1160px] mx-auto flex md:flex-row flex-col justify-between gap-[70px]" style={{
+        <div className="w-[90%] max-w-[1160px] mx-auto flex md:flex-row flex-col justify-between gap-[30px] md:gap-[70px]" style={{
             backgroundImage: "url('/images/why-us-bg.svg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
         }}>
       {/* Left side image */}
-      <div className="relative rounded-[20px] overflow-hidden h-[560px] w-[450px] p-[40px]" style={{
+      <div className="relative rounded-[20px] overflow-hidden h-[350px] lg:h-[560px] w-full lg:w-[450px] p-[40px]" style={{
         backgroundImage: "url('/images/faq-img-1.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
