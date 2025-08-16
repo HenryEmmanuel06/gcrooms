@@ -68,7 +68,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
     <>
     <section
       ref={sectionRef}
-      className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20"
+      className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20 bg-[#ffff]"
     >
       {/* LEFT COLUMN */}
       <div className="w-1/3 sticky top-20 h-fit self-start pb-[100px]">
@@ -126,7 +126,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
        
     </section>
 <section className="w-[90%] max-w-[1300px] mx-auto block lg:hidden bg-[#ffff]">
-<div className="w-full">
+<div className="w-full bg-[#ffff]">
         <h2 className="text-[30px] md:text-[36px] font-bold text-black">Got A Room To List?</h2>
         <p className="text-[30px] md:text-[36px] text-black font-light leading-none max-w-[361px]">See how others earn on grooms</p>
         <button
@@ -141,7 +141,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
       </div>
 
 
-      <div className="w-full flex flex-col gap-[20px] mt-[30px]">
+      <div className="w-full flex flex-col gap-[20px] mt-[30px] bg-[#ffff]">
         {cardsData.map((card) => {
           return (
             <div
