@@ -4,7 +4,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { s } from "framer-motion/client";
 type FaqItem = {
   question: string;
   answer: string;

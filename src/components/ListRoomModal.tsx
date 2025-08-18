@@ -180,12 +180,13 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       const data = await response.json();
       
       // Validate response data
-      const validSuggestions = data.filter((item: any) => 
-        item && 
-        typeof item.display_name === 'string' && 
-        typeof item.lat === 'string' && 
-        typeof item.lon === 'string' &&
-        isValidCoordinate(item.lat, item.lon)
+      const validSuggestions = data.filter((item: unknown): item is LocationSuggestion => 
+        typeof item === 'object' &&
+        item !== null &&
+        typeof (item as LocationSuggestion).display_name === 'string' && 
+        typeof (item as LocationSuggestion).lat === 'string' && 
+        typeof (item as LocationSuggestion).lon === 'string' &&
+        isValidCoordinate((item as LocationSuggestion).lat, (item as LocationSuggestion).lon)
       );
       
       setLocationSuggestions(validSuggestions);

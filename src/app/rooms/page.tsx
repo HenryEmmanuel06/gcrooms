@@ -1,7 +1,6 @@
 "use client";
 
 
-import ListingSection from "@/components/ListingSection";
 import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
