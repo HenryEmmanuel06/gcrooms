@@ -24,3 +24,23 @@ body {
   color: var(--foreground); */
   font-family: var(--font-plus-jakarta-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Carousel draining animation - like water emptying */
+@keyframes drain {
+  0% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  90% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0.3;
+  }
+}
+
+.animate-drain {
+  animation: drain 4s linear infinite;
+}

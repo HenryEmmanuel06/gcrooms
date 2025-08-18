@@ -41,8 +41,36 @@ export default function WhyUs() {
   const [roomSuggestions, setRoomSuggestions] = useState<RoomSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Background images for carousel
+  const backgroundImages = [
+    '/images/whyus-img.png',
+    '/images/whyus-img-2.jpg', // Add your second image
+    '/images/whyus-img-3.jpg'  // Add your third image
+  ];
+
+  // Auto-play carousel functionality
+  useEffect(() => {
+    const startCarousel = () => {
+      intervalRef.current = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => 
+          (prevIndex + 1) % backgroundImages.length
+        );
+      }, 3000); // 3 seconds
+    };
+
+    startCarousel();
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [backgroundImages.length]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -125,9 +153,9 @@ export default function WhyUs() {
   return (
     <section className="bg-white py-10 md:py-15 lg:py-23" style={{
       backgroundImage: "url('images/why-us-bg.svg')",
-      backgroundSize: "cover",
+      backgroundSize: "contain",
       backgroundPositionX: "center",
-      backgroundPositionY: "-200px",
+      backgroundPositionY: "center",
       backgroundRepeat: "no-repeat",
     }}>
       <div className="mx-auto w-[90%] max-w-[1155px]">
@@ -279,12 +307,62 @@ export default function WhyUs() {
               )}
             </div>
           </div>
-          <div className="h-[250px] w-[100%] rounded-tr-[10px] rounded-br-[10px] hidden lg:flex" style={{
-            backgroundImage: "url('/images/whyus-img.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}>
-
+          <div className="relative h-[250px] w-[100%] rounded-tr-[10px] rounded-br-[10px] hidden lg:flex overflow-hidden">
+            {/* Background Images with Transition */}
+            {backgroundImages.map((image, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+                style={{
+                  backgroundImage: `url('${image}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            ))}
+            
+            {/* Vertical Pagination Bars with Timer */}
+            <div className="absolute bottom-4 right-4 flex flex-col space-y-2">
+              {backgroundImages.map((_, index) => (
+                <div
+                  key={index}
+                  className="relative cursor-pointer"
+                  onClick={() => {
+                    setCurrentImageIndex(index);
+                    // Reset interval when manually clicked
+                    if (intervalRef.current) {
+                      clearInterval(intervalRef.current);
+                      intervalRef.current = setInterval(() => {
+                        setCurrentImageIndex((prevIndex) => 
+                          (prevIndex + 1) % backgroundImages.length
+                        );
+                      }, 4000);
+                    }
+                  }}
+                >
+                  {/* Background bar */}
+                  <div className={`bg-white/50 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex ? 'w-[10px] h-[50px]' : 'w-[10px] h-[20px]'
+                  }`} />
+                  
+                  {/* Active bar with draining animation */}
+                  {index === currentImageIndex && (
+                    <div className="absolute top-0 left-0 w-[10px] h-[50px] bg-[#FFBE06] rounded-full overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06] rounded-full animate-drain" />
+                    </div>
+                  )}
+                  
+                  {/* Static active bar */}
+                  <div className={`absolute top-0 left-0 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex 
+                      ? 'w-[10px] h-[50px] bg-[#FFBE06]/20' 
+                      : 'w-[10px] h-[20px] bg-white/70'
+                  }`} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -8,9 +8,9 @@ import Image from "next/image";
     return (
         <section className="bg-white md:py-16 py-0 bg-[url('/images/process-bg.svg')]" style={
             {
-                backgroundSize: "cover",
+                backgroundSize: "contain",
                 backgroundPositionX: "center",
-                backgroundPositionY: "50px",
+                backgroundPositionY: "center",
                 backgroundRepeat: "no-repeat",
             }
         }>

@@ -7,7 +7,7 @@ import Image from "next/image";
 const Footer: FC = () => {
     return (
         <footer className="bg-purple-600 text-white py-10 px-0 md:px-20 pt-[70px]">
-            <div className="max-w-[1300px] mx-auto flex md:flex-row flex-col gap-[30px] justify-between items-start px-4">
+            <div className="max-w-[1300px] mx-auto flex md:flex-row flex-col gap-[30px] justify-between items-start md:items-center px-4">
                 {/* Logo + Description */}
                 <div>
                     <div className="flex items-center gap-2 text-2xl font-bold">
