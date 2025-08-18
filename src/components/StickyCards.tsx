@@ -71,7 +71,7 @@ export default function StickyCards() {
                 className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20 text-black"
             >
                 {/* LEFT COLUMN */}
-                <div className="w-1/3 sticky top-20 h-fit self-start pb-[100px]">
+                <div className="w-1/3 sticky top-20 h-fit self-start lg:pb-[270px] pb-[100px]">
                     <h2 className="text-[36px] font-bold text-black">Got A Room To List?</h2>
                     <p className="text-[36px] text-black font-light leading-none w-[361px]">See how others earn on grooms</p>
                     <button
@@ -86,7 +86,7 @@ export default function StickyCards() {
                 </div>
 
                 {/* RIGHT COLUMN */}
-                <div className="w-2/3 relative h-[600px]">
+                <div className="w-2/3 relative h-[600px] xl:h-[800px]">
                     {cardsData.map((card, index) => {
                         const { cardY, cardScale } = getCardTransforms(index);
 
