@@ -307,7 +307,7 @@ export default function WhyUs() {
               )}
             </div>
           </div>
-          <div className="relative h-[250px] w-[100%] rounded-tr-[10px] rounded-br-[10px] hidden lg:flex overflow-hidden">
+          <div className="relative h-[300px] w-[100%] rounded-tr-[10px] rounded-br-[10px] hidden lg:flex overflow-hidden">
             {/* Background Images with Transition */}
             {backgroundImages.map((image, index) => (
               <div
@@ -344,12 +344,12 @@ export default function WhyUs() {
                 >
                   {/* Background bar */}
                   <div className={`bg-white/50 rounded-full transition-all duration-300 ${
-                    index === currentImageIndex ? 'w-[10px] h-[50px]' : 'w-[10px] h-[20px]'
+                    index === currentImageIndex ? 'w-[7px] h-[50px]' : 'w-[7px] h-[20px]'
                   }`} />
                   
                   {/* Active bar with draining animation */}
                   {index === currentImageIndex && (
-                    <div className="absolute top-0 left-0 w-[10px] h-[50px] bg-[#FFBE06] rounded-full overflow-hidden">
+                    <div className="absolute top-0 left-0 w-[7px] h-[50px] bg-[#FFBE06] rounded-full overflow-hidden">
                       <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06] rounded-full animate-drain" />
                     </div>
                   )}
@@ -357,8 +357,8 @@ export default function WhyUs() {
                   {/* Static active bar */}
                   <div className={`absolute top-0 left-0 rounded-full transition-all duration-300 ${
                     index === currentImageIndex 
-                      ? 'w-[10px] h-[50px] bg-[#FFBE06]/20' 
-                      : 'w-[10px] h-[20px] bg-white/70'
+                      ? 'w-[7px] h-[50px] bg-[#FFBE06]/20' 
+                      : 'w-[7px] h-[20px] bg-white/70'
                   }`} />
                 </div>
               ))}
