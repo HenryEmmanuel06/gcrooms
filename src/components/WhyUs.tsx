@@ -21,6 +21,7 @@ interface RoomSuggestion {
   property_title: string;
   location: string;
   state: string;
+  is_verified: string;
 }
 
 // Generate URL slug from property title
@@ -72,7 +73,8 @@ export default function WhyUs() {
     try {
       const { data, error } = await supabase
         .from('rooms')
-        .select('id, property_title, location, state')
+        .select('id, property_title, location, state, is_verified')
+        .eq('is_verified', 'verified')
         .or(`location.ilike.%${query}%,state.ilike.%${query}%`)
         .limit(10);
 

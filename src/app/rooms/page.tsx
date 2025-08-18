@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ListRoomModal from "@/components/ListRoomModal";
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -29,6 +30,7 @@ interface RoomSuggestion {
   room_img_1: string;
   building_type: string;
   room_size: number;
+  is_verified: string;
 }
 
 interface SearchSuggestion {
@@ -36,6 +38,7 @@ interface SearchSuggestion {
   property_title: string;
   location: string;
   state: string;
+  is_verified: string;
 }
 
 // Generate URL slug from property title
@@ -75,6 +78,7 @@ export default function RoomsPage() {
         const { data, error } = await supabase
           .from('rooms')
           .select('*')
+          .eq('is_verified', 'verified')
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -121,7 +125,8 @@ export default function RoomsPage() {
     try {
       const { data, error } = await supabase
         .from('rooms')
-        .select('id, property_title, location, state')
+        .select('id, property_title, location, state, is_verified')
+        .eq('is_verified', 'verified')
         .or(`location.ilike.%${query}%,state.ilike.%${query}%`)
         .limit(10);
 
@@ -169,7 +174,7 @@ export default function RoomsPage() {
     const slug = generateSlug(room.property_title, room.id.toString());
     router.push(`/rooms/${slug}`);
   };
-
+const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <section className="relative overflow-hidden text-white lg:h-[500px] h-[350px]" style={{
@@ -245,17 +250,8 @@ export default function RoomsPage() {
       </section>
       
       {/* All Rooms Grid Section */}
-      <section className="bg-white py-[70px]">
+      <section className="bg-white pt-[70px]">
         <div className="mx-auto w-[90%] max-w-[1300px]">
-          {/* <div className="text-center mb-[50px]">
-            <h2 className="text-[40px] lg:text-5xl font-bold text-black leading-tight mb-4">
-              All Available Rooms
-            </h2>
-            <p className="text-[16px] text-gray-600">
-              Browse through our complete collection of rooms and apartments
-            </p>
-          </div> */}
-
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="flex space-x-1">
@@ -269,7 +265,7 @@ export default function RoomsPage() {
               {allRooms.map((room) => (
                 <Link key={room.id} href={`/rooms/${generateSlug(room.property_title, room.id.toString())}`} className="block">
                   <div className="relative group bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden cursor-pointer">
-                  <div className="absolute top-[35px] rounded-[5px] right-[25px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
+                  <div className="absolute top-[23px] rounded-[5px] right-[25px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
                     <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M6.00004 1.16669C4.76236 1.16669 3.57538 1.65835 2.70021 2.53352C1.82504 3.40869 1.33337 4.59568 1.33337 5.83335C1.33337 6.93702 1.56787 7.65919 2.20837 8.45835L6.00004 12.8334L9.79171 8.45835C10.4322 7.65919 10.6667 6.93702 10.6667 5.83335C10.6667 4.59568 10.175 3.40869 9.29987 2.53352C8.4247 1.65835 7.23772 1.16669 6.00004 1.16669Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
@@ -280,7 +276,7 @@ export default function RoomsPage() {
                   {/* Room Image */}
                   <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
                     {room.room_img_1 ? (
-                      <div className="w-full h-60 object-cover transition-all duration-500 group-hover:h-40" style={{
+                      <div className="w-full h-60 object-cover transition-all duration-500 group-hover:h-35" style={{
                         backgroundImage: `url(${room.room_img_1})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
@@ -449,6 +445,38 @@ export default function RoomsPage() {
           )}
         </div>
       </section>
+
+
+      <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[30px] mb-[30px] md:mt-[70px] md:mb-[70px]" style={{
+        background: "linear-gradient(92.93deg, #9B30DF 0.5%, rgba(102, 14, 209, 0.8) 131.44%)",
+      }}>
+        <div className="flex items-center gap-[20px] pl-[15px] pr-[15px] py-[15px] md:pl-[40px] md:pr-[20px] md:py-[20px]">
+          <div className="w-[100%]">
+            <h2 className="lg:text-[36px] md:text-[32px] lg:w-[450px] w-[100%] text-[26px] font-bold text-white leading-tight">Diverse rooms suited to your style or pocket</h2>
+            {/* <div className="relative lg:w-[470px] max-w-[470px] w-[100%] mt-[20px] md:mt-[50px]" ref={dropdownRef}> */}
+            <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition"
+                style={{
+                  boxShadow: "0px 0px 10px 0px #660ED180"
+                }}
+              >
+                List your room
+              </button>
+            
+          </div>
+          <div className="h-[250px] w-[100%] rounded-tr-[10px] rounded-br-[10px] hidden lg:flex" style={{
+            backgroundImage: "url('/images/whyus-img.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}>
+          </div>
+        </div>
+        </div>
+         <ListRoomModal 
+                      isOpen={isModalOpen} 
+                      onClose={() => setIsModalOpen(false)} 
+                />  
     </>
   );
 }

@@ -4,6 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
+import { 
+  sanitizeText, 
+  sanitizeNumber, 
+  isValidPrice, 
+  isValidCoordinate, 
+  validateImageFile, 
+  generateSecureFilename, 
+  RateLimiter 
+} from '../utils/security';
 
 // Dynamically import the map component to avoid SSR issues
 const MapComponent = dynamic(() => import('./MapComponent'), {
@@ -106,10 +115,12 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [showMap, setShowMap] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const locationRateLimiter = useRef(new RateLimiter(5, 10000)); // 5 requests per 10 seconds
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -135,7 +146,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     };
   }, []);
 
-  // Search for location suggestions using Nominatim
+  // Search for location suggestions using Nominatim with rate limiting
   const searchLocation = async (query: string) => {
     if (query.length < 3) {
       setLocationSuggestions([]);
@@ -144,12 +155,22 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       return;
     }
 
+    // Rate limiting check
+    if (!locationRateLimiter.current.isAllowed('location_search')) {
+      console.warn('Location search rate limit exceeded');
+      return;
+    }
+
+    // Sanitize query
+    const sanitizedQuery = sanitizeText(query, 100);
+    if (!sanitizedQuery) return;
+
     setIsLocationSearching(true);
     setShowSuggestions(true);
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=ng`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sanitizedQuery)}&limit=5&addressdetails=1&countrycodes=ng`
       );
       
       if (!response.ok) {
@@ -157,24 +178,39 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       }
       
       const data = await response.json();
-      setLocationSuggestions(data);
+      
+      // Validate response data
+      const validSuggestions = data.filter((item: any) => 
+        item && 
+        typeof item.display_name === 'string' && 
+        typeof item.lat === 'string' && 
+        typeof item.lon === 'string' &&
+        isValidCoordinate(item.lat, item.lon)
+      );
+      
+      setLocationSuggestions(validSuggestions);
       setIsLocationSearching(false);
     } catch (error) {
-      // Silently handle errors - don't show suggestions if API fails
       setLocationSuggestions([]);
       setShowSuggestions(false);
       setIsLocationSearching(false);
-      console.log(error);
-      
+      console.error('Location search error:', error);
     }
   };
 
-  // Handle location input change
+  // Handle location input change with validation
   const handleLocationChange = (value: string) => {
-    setFormData(prev => ({ ...prev, location: value }));
+    // Sanitize input
+    const sanitizedValue = sanitizeText(value, 200);
+    setFormData(prev => ({ ...prev, location: sanitizedValue }));
+    
+    // Clear validation error
+    if (validationErrors.location) {
+      setValidationErrors(prev => ({ ...prev, location: '' }));
+    }
     
     // Clear suggestions if input is cleared
-    if (!value.trim()) {
+    if (!sanitizedValue.trim()) {
       setLocationSuggestions([]);
       setShowSuggestions(false);
       setIsLocationSearching(false);
@@ -190,16 +226,28 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     
     // Debounce the search to avoid too many API calls
     searchTimeoutRef.current = setTimeout(() => {
-      searchLocation(value);
-    }, 300);
+      searchLocation(sanitizedValue);
+    }, 500); // Increased debounce time
   };
 
-  // Handle location selection
+  // Handle location selection with validation
   const handleLocationSelect = (suggestion: LocationSuggestion) => {
-    setFormData(prev => ({ ...prev, location: suggestion.display_name }));
+    // Validate coordinates
+    if (!isValidCoordinate(suggestion.lat, suggestion.lon)) {
+      console.error('Invalid coordinates received');
+      return;
+    }
+    
+    const sanitizedDisplayName = sanitizeText(suggestion.display_name, 200);
+    setFormData(prev => ({ ...prev, location: sanitizedDisplayName }));
     setSelectedLocation({ lat: suggestion.lat, lon: suggestion.lon });
     setShowSuggestions(false);
     setShowMap(true);
+    
+    // Clear validation error
+    if (validationErrors.location) {
+      setValidationErrors(prev => ({ ...prev, location: '' }));
+    }
     
     // Focus back to the input after selection
     if (locationInputRef.current) {
@@ -244,41 +292,130 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
   };
 
-  // Handle form submission
+  // Validate form data
+  const validateFormData = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    // Validate property title
+    if (!formData.property_title.trim()) {
+      errors.property_title = 'Property title is required';
+    } else if (formData.property_title.length > 100) {
+      errors.property_title = 'Property title must be less than 100 characters';
+    }
+    
+    // Validate location
+    if (!formData.location.trim()) {
+      errors.location = 'Location is required';
+    } else if (!selectedLocation) {
+      errors.location = 'Please select a location from the suggestions';
+    }
+    
+    // Validate state
+    if (!formData.state) {
+      errors.state = 'State is required';
+    }
+    
+    // Validate price
+    if (!formData.price) {
+      errors.price = 'Price is required';
+    } else if (!isValidPrice(formData.price)) {
+      errors.price = 'Please enter a valid price';
+    }
+    
+    // Validate bathrooms
+    if (!formData.bathrooms) {
+      errors.bathrooms = 'Number of bathrooms is required';
+    } else {
+      const bathrooms = sanitizeNumber(formData.bathrooms, 0, 10);
+      if (bathrooms === null) {
+        errors.bathrooms = 'Please enter a valid number of bathrooms (0-10)';
+      }
+    }
+    
+    // Validate room size
+    if (!formData.room_size) {
+      errors.room_size = 'Room size is required';
+    } else {
+      const roomSize = sanitizeNumber(formData.room_size, 1, 10000);
+      if (roomSize === null) {
+        errors.room_size = 'Please enter a valid room size (1-10000 sq ft)';
+      }
+    }
+    
+    // Validate furniture
+    if (!formData.furniture) {
+      errors.furniture = 'Furniture option is required';
+    }
+    
+    // Validate building type
+    if (!formData.building_type) {
+      errors.building_type = 'Building type is required';
+    }
+    
+    // Validate description
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required';
+    } else if (formData.description.length > 2000) {
+      errors.description = 'Description must be less than 2000 characters';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle form submission with comprehensive validation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form data
+    if (!validateFormData()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      // Validate required fields
-      if (!formData.property_title.trim()) {
-        throw new Error('Property title is required');
-      }
-      if (!formData.location.trim()) {
-        throw new Error('Location is required');
-      }
-      if (!formData.price || parseFloat(formData.price) <= 0) {
-        throw new Error('Valid price is required');
-      }
-      if (!selectedLocation) {
-        throw new Error('Please select a location from the suggestions');
+      // Sanitize and validate all inputs
+      const sanitizedData = {
+        property_title: sanitizeText(formData.property_title, 100),
+        location: sanitizeText(formData.location, 200),
+        state: formData.state, // Already validated from dropdown
+        price: sanitizeNumber(formData.price, 0.01, 1000000),
+        bathrooms: sanitizeNumber(formData.bathrooms, 0, 10),
+        bedrooms: sanitizeNumber(formData.bedrooms || '0', 0, 20),
+        room_size: sanitizeNumber(formData.room_size, 1, 10000),
+        furniture: formData.furniture, // Already validated from dropdown
+        wifi_zone: formData.wifi_zone,
+        description: sanitizeText(formData.description, 2000),
+        room_features: sanitizeText(formData.room_features, 1000),
+        building_type: formData.building_type, // Already validated from dropdown
+        latitude: sanitizeNumber(selectedLocation!.lat, -90, 90),
+        longitude: sanitizeNumber(selectedLocation!.lon, -180, 180),
+      };
+      
+      // Final validation of sanitized data
+      if (!sanitizedData.property_title || !sanitizedData.location || 
+          sanitizedData.price === null || sanitizedData.bathrooms === null ||
+          sanitizedData.room_size === null || !sanitizedData.description ||
+          sanitizedData.latitude === null || sanitizedData.longitude === null) {
+        throw new Error('Invalid data detected. Please check your inputs.');
       }
 
       const roomData: RoomData = {
-        property_title: formData.property_title,
-        location: formData.location,
-        state: formData.state,
-        price: parseFloat(formData.price),
-        bathrooms: parseFloat(formData.bathrooms),
-        bedrooms: parseFloat(formData.bedrooms) || 0,
-        room_size: parseFloat(formData.room_size),
-        furniture: formData.furniture,
-        wifi_zone: formData.wifi_zone,
-        description: formData.description,
-        room_features: formData.room_features,
-        building_type: formData.building_type,
-        latitude: parseFloat(selectedLocation.lat),
-        longitude: parseFloat(selectedLocation.lon),
+        property_title: sanitizedData.property_title,
+        location: sanitizedData.location,
+        state: sanitizedData.state,
+        price: sanitizedData.price,
+        bathrooms: sanitizedData.bathrooms,
+        bedrooms: sanitizedData.bedrooms || 0,
+        room_size: sanitizedData.room_size,
+        furniture: sanitizedData.furniture,
+        wifi_zone: sanitizedData.wifi_zone,
+        description: sanitizedData.description,
+        room_features: sanitizedData.room_features,
+        building_type: sanitizedData.building_type,
+        latitude: sanitizedData.latitude,
+        longitude: sanitizedData.longitude,
         created_at: new Date().toISOString(),
         room_img_1: uploadedImages[0] || undefined,
         room_img_2: uploadedImages[1] || undefined,
@@ -295,6 +432,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
       alert('Room listed successfully!');
       onClose();
+      // Reset form
       setFormData({
         property_title: '',
         location: '',
@@ -312,6 +450,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       setSelectedLocation(null);
       setShowMap(false);
       setUploadedImages([]);
+      setValidationErrors({});
+      locationRateLimiter.current.reset('location_search');
     } catch (error) {
       // Show more detailed error information
       if (error instanceof Error) {
@@ -337,9 +477,42 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
   };
 
-  // Handle input change
+  // Handle input change with validation and sanitization
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    let sanitizedValue = value;
+    
+    // Sanitize inputs based on field type
+    if (typeof value === 'string') {
+      switch (field) {
+        case 'price':
+        case 'bathrooms':
+        case 'bedrooms':
+        case 'room_size':
+          // For numeric fields: remove spaces and non-numeric characters except decimal point
+          sanitizedValue = value.replace(/[^0-9.]/g, '');
+          break;
+        case 'property_title':
+          // For text fields: preserve spaces but sanitize HTML and limit length
+          sanitizedValue = sanitizeText(value, 100);
+          break;
+        case 'description':
+          sanitizedValue = sanitizeText(value, 2000);
+          break;
+        case 'room_features':
+          sanitizedValue = sanitizeText(value, 1000);
+          break;
+        default:
+          // For other text fields: preserve spaces
+          sanitizedValue = sanitizeText(value, 200);
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: sanitizedValue }));
+    
+    // Clear validation error for this field
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   // Compress image using Tinify
@@ -390,7 +563,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
   };
 
-  // Handle image upload
+  // Handle secure image upload with comprehensive validation
   const handleImageUpload = async (files: FileList) => {
     if (uploadedImages.length >= 5) {
       alert('Maximum 5 images allowed');
@@ -398,6 +571,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
 
     setUploadingImages(true);
+    const errors: string[] = [];
 
     try {
       const fileArray = Array.from(files);
@@ -406,28 +580,37 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       for (let i = 0; i < fileArray.length && uploadedImages.length + newImages.length < 5; i++) {
         const file = fileArray[i];
         
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
+        // Comprehensive file validation
+        const validation = await validateImageFile(file);
+        if (!validation.isValid) {
+          errors.push(`${file.name}: ${validation.error}`);
           continue;
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          continue;
+        try {
+          // Compress image
+          const compressedBlob = await compressImage(file);
+          
+          // Generate secure filename
+          const fileName = generateSecureFilename(file.name);
+          
+          // Upload to storage
+          const imageUrl = await uploadImageToStorage(compressedBlob, fileName);
+          newImages.push(imageUrl);
+        } catch (uploadError) {
+          errors.push(`${file.name}: Upload failed`);
+          console.error('Individual file upload error:', uploadError);
         }
-
-        // Compress image
-        const compressedBlob = await compressImage(file);
-        
-        // Generate unique filename
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-        
-        // Upload to storage
-        const imageUrl = await uploadImageToStorage(compressedBlob, fileName);
-        newImages.push(imageUrl);
       }
 
-      setUploadedImages(prev => [...prev, ...newImages]);
+      if (newImages.length > 0) {
+        setUploadedImages(prev => [...prev, ...newImages]);
+      }
+      
+      if (errors.length > 0) {
+        alert(`Some files could not be uploaded:\n${errors.join('\n')}`);
+      }
+      
     } catch (error) {
       console.error('Image upload error:', error);
       alert('Failed to upload images. Please try again.');
@@ -482,11 +665,17 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={formData.property_title}
                     onChange={(e) => handleInputChange('property_title', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.property_title ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Enter property title"
                   />
+                  {validationErrors.property_title && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.property_title}</p>
+                  )}
                 </div>
 
                 {/* Location */}
@@ -498,11 +687,17 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     ref={locationInputRef}
                     type="text"
                     required
+                    maxLength={200}
                     value={formData.location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.location ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Start typing location..."
                   />
+                  {validationErrors.location && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.location}</p>
+                  )}
                   
                   {/* Location Suggestions */}
                   {showSuggestions && (
@@ -547,7 +742,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.state}
                     onChange={(e) => handleInputChange('state', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="">Select state</option>
                     {NIGERIAN_STATES.map((state) => (
@@ -556,6 +753,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       </option>
                     ))}
                   </select>
+                  {validationErrors.state && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.state}</p>
+                  )}
                 </div>
 
                 {/* Price */}
@@ -564,14 +764,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     Price (per month) *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
                     value={formData.price}
                     onChange={(e) => handleInputChange('price', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                    placeholder="Enter price"
-                    min="0"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.price ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter price (e.g., 50000)"
+                    pattern="[0-9]+(\.[0-9]{1,2})?"
                   />
+                  {validationErrors.price && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>
+                  )}
                 </div>
 
                 {/* Bathrooms */}
@@ -580,15 +785,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     Number of Bathrooms *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
                     value={formData.bathrooms}
                     onChange={(e) => handleInputChange('bathrooms', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                    placeholder="Enter number of bathrooms"
-                    min="0"
-                    step="0.5"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.bathrooms ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter number of bathrooms (e.g., 2 or 1.5)"
+                    pattern="[0-9]+(\.[0-9])?"
                   />
+                  {validationErrors.bathrooms && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.bathrooms}</p>
+                  )}
                 </div>
 
                 {/* Bedrooms */}
@@ -597,13 +806,12 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     Number of Bedrooms
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={formData.bedrooms}
                     onChange={(e) => handleInputChange('bedrooms', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                    placeholder="Enter number of bedrooms"
-                    min="0"
-                    step="1"
+                    placeholder="Enter number of bedrooms (optional)"
+                    pattern="[0-9]+"
                   />
                 </div>
 
@@ -613,14 +821,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     Room Size (sq ft) *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
                     value={formData.room_size}
                     onChange={(e) => handleInputChange('room_size', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                    placeholder="Enter room size"
-                    min="0"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.room_size ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter room size (e.g., 150)"
+                    pattern="[0-9]+(\.[0-9]+)?"
                   />
+                  {validationErrors.room_size && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.room_size}</p>
+                  )}
                 </div>
 
                 {/* Furniture */}
@@ -632,13 +845,18 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.furniture}
                     onChange={(e) => handleInputChange('furniture', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.furniture ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="">Select furniture option</option>
                     <option value="Furnished">Furnished</option>
                     <option value="Semi-furnished">Semi-furnished</option>
                     <option value="Unfurnished">Unfurnished</option>
                   </select>
+                  {validationErrors.furniture && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.furniture}</p>
+                  )}
                 </div>
 
                 {/* Building Type */}
@@ -650,7 +868,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.building_type}
                     onChange={(e) => handleInputChange('building_type', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      validationErrors.building_type ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="">Select building type</option>
                     <option value="Apartment">Apartment</option>
@@ -659,6 +879,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     <option value="Townhouse">Townhouse</option>
                     <option value="Studio">Studio</option>
                   </select>
+                  {validationErrors.building_type && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.building_type}</p>
+                  )}
                 </div>
 
                 {/* WiFi Zone */}
@@ -679,31 +902,38 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
+                  Description * <span className="text-gray-500 text-xs">({formData.description.length}/2000)</span>
                 </label>
                 <textarea
                   required
+                  maxLength={2000}
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    validationErrors.description ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Describe your room, amenities, and what makes it special..."
                 />
+                {validationErrors.description && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.description}</p>
+                )}
               </div>
 
-                             {/* Room Features */}
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                   Room Features
-                 </label>
-                 <textarea
-                   value={formData.room_features}
-                   onChange={(e) => handleInputChange('room_features', e.target.value)}
-                   rows={3}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
-                   placeholder="List additional features (e.g., balcony, parking, gym access...)"
-                 />
-               </div>
+              {/* Room Features */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Room Features <span className="text-gray-500 text-xs">({formData.room_features.length}/1000)</span>
+                </label>
+                <textarea
+                  maxLength={1000}
+                  value={formData.room_features}
+                  onChange={(e) => handleInputChange('room_features', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black"
+                  placeholder="List additional features (e.g., balcony, parking, gym access...)"
+                />
+              </div>
 
                {/* Room Images */}
                <div>
@@ -754,6 +984,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                          <Image
                            src={imageUrl}
                            alt={`Room image ${index + 1}`}
+                           width={200}
+                           height={200}
                            className="w-full h-32 object-cover rounded-lg"
                          />
                          <button
@@ -798,10 +1030,10 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !selectedLocation}
+                  disabled={isLoading || !selectedLocation || uploadingImages}
                   className="px-6 py-2 bg-[#10D1C1] text-white rounded-lg hover:bg-[#0FB8A8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Listing Room...' : 'List Room'}
+                  {uploadingImages ? 'Uploading Images...' : isLoading ? 'Listing Room...' : 'List Room'}
                 </button>
               </div>
             </form>

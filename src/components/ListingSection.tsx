@@ -33,6 +33,7 @@ interface Room {
   room_size: number;
   room_img_1?: string;
   state: string;
+  is_verified: string;
 }
 
 // Generate URL slug from property title
@@ -70,6 +71,7 @@ export default function ListingSection() {
         const { data, error } = await supabase
           .from('rooms')
           .select('*')
+          .eq('is_verified', 'verified')
           .order('created_at', { ascending: false })
           .limit(20);
 
