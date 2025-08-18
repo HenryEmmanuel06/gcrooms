@@ -18,7 +18,7 @@ export default function Navbar() {
         <div className="flex items-center">
           <nav className="hidden lg:flex items-center gap-[40px] text-[16px] text-white">
             <Link href="#" className="hover:text-white">Home</Link>
-            <Link href="#rooms" className="hover:text-white">Rooms</Link>
+            <Link href="/rooms" className="hover:text-white">Rooms</Link>
             <Link href="#faqs" className="hover:text-white">FAQs</Link>
             <Link href="#why" className="hover:text-white">Why GCrooms</Link>
           </nav>

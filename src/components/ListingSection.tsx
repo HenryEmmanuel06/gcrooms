@@ -168,7 +168,8 @@ export default function ListingSection() {
           >
             {rooms.map((room) => (
               <SwiperSlide key={room.id}>
-                <div className="group bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden my-3 cursor-pointer">
+                <Link href={`/rooms/${generateSlug(room.property_title, room.id)}`} className="block">
+                  <div className="group bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden my-3 cursor-pointer">
                   <div className="absolute top-[35px] rounded-[5px] right-[25px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
                   <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
@@ -196,15 +197,12 @@ export default function ListingSection() {
 
                     {/* Overlay */}
                     <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Link
-                        href={`/rooms/${generateSlug(room.property_title, room.id)}`}
-                        className="bg-[#10D1C1] text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                      >
+                      <div className="bg-[#10D1C1] text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2">
                         <span>Go to property</span>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
-                      </Link>
+                      </div>
                     </div>
                   </div>
 
@@ -367,7 +365,8 @@ export default function ListingSection() {
 
                     </div>
                   </div>
-                </div>
+                  </div>
+                </Link>
               </SwiperSlide>
             ))}
           </Swiper>

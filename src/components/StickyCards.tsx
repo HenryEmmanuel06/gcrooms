@@ -68,7 +68,7 @@ export default function StickyCards() {
         <>
             <section
                 ref={sectionRef}
-                className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20 bg-[#ffff]"
+                className="relative hidden lg:flex w-[90%] max-w-[1300px] mx-auto gap-8 py-20 text-black"
             >
                 {/* LEFT COLUMN */}
                 <div className="w-1/3 sticky top-20 h-fit self-start pb-[100px]">
