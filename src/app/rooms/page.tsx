@@ -480,7 +480,7 @@ export default function RoomsPage() {
             {/* <div className="relative lg:w-[470px] max-w-[470px] w-[100%] mt-[20px] md:mt-[50px]" ref={dropdownRef}> */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition"
+              className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition mt-[40px]"
               style={{
                 boxShadow: "0px 0px 10px 0px #660ED180"
               }}
