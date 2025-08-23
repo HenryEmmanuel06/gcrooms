@@ -26,6 +26,10 @@ interface RoomSuggestion {
   bathrooms: number;
   bedrooms: number;
   room_img_1: string;
+  room_img_2?: string;
+  room_img_3?: string;
+  room_img_4?: string;
+  room_img_5?: string;
   building_type: string;
   room_size: number;
   is_verified: string;
@@ -62,6 +66,7 @@ export default function RoomsPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [imageIndexByRoom, setImageIndexByRoom] = useState<Record<number, number>>({});
 
   // Background images for carousel
   const backgroundImages = [
@@ -286,22 +291,61 @@ export default function RoomsPage() {
             </div>
           ) : allRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-[15px] gap-y-[15px] xl:gap-x-[10px] xl:gap-y-[50px]">
-              {allRooms.map((room) => (
+              {allRooms.map((room) => {
+                const images = [
+                  room.room_img_1,
+                  room.room_img_2,
+                  room.room_img_3,
+                  room.room_img_4,
+                  room.room_img_5,
+                ].filter(Boolean) as string[];
+                const idx = imageIndexByRoom[room.id] ?? 0;
+                const currentImg = images[idx] || room.room_img_1;
+
+                const goPrev = (e: any) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (images.length === 0) return;
+                  setImageIndexByRoom((prev) => ({
+                    ...prev,
+                    [room.id]: (idx - 1 + images.length) % images.length,
+                  }));
+                };
+
+                const goNext = (e: any) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (images.length === 0) return;
+                  setImageIndexByRoom((prev) => ({
+                    ...prev,
+                    [room.id]: (idx + 1) % images.length,
+                  }));
+                };
+
+                return (
                 <Link key={room.id} href={`/rooms/${generateSlug(room.property_title, room.id.toString())}`} className="block">
-                  <div className="relative group bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden cursor-pointer">
-                    <div className="absolute top-[23px] rounded-[5px] right-[25px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
-                      <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M6.00004 1.16669C4.76236 1.16669 3.57538 1.65835 2.70021 2.53352C1.82504 3.40869 1.33337 4.59568 1.33337 5.83335C1.33337 6.93702 1.56787 7.65919 2.20837 8.45835L6.00004 12.8334L9.79171 8.45835C10.4322 7.65919 10.6667 6.93702 10.6667 5.83335C10.6667 4.59568 10.175 3.40869 9.29987 2.53352C8.4247 1.65835 7.23772 1.16669 6.00004 1.16669Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span className="text-[12px] text-black">{room.state.trim().replace(/\b\w/g, (char) => char.toUpperCase())}</span>
+                  <div className="relative bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden cursor-pointer">
+                    {/* Image controls - replace state badge */}
+                    <div className="absolute top-[18px] right-[18px] z-20 flex items-center gap-[5px] bg-[#FFFFFFE5] px-[5px] py-[5px] rounded-full">
+                      <button onClick={goPrev} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                      </button>
+                      <button onClick={goNext} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
                     </div>
+
+                    
 
                     {/* Room Image */}
                     <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
                       {room.room_img_1 ? (
                         <div className="w-full h-60 object-cover transition-all duration-500 group-hover:h-35" style={{
-                          backgroundImage: `url(${room.room_img_1})`,
+                          backgroundImage: `url(${currentImg})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
                         }}>
@@ -313,9 +357,16 @@ export default function RoomsPage() {
                           </svg>
                         </div>
                       )}
+<div className="absolute bottom-[5px] rounded-[5px] right-[5px] z-20 flex items-center justify-center gap-[5px] bg-[#FFFFFFE5] px-[10px] py-[7px]">
+                  <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M6.00004 1.16669C4.76236 1.16669 3.57538 1.65835 2.70021 2.53352C1.82504 3.40869 1.33337 4.59568 1.33337 5.83335C1.33337 6.93702 1.56787 7.65919 2.20837 8.45835L6.00004 12.8334L9.79171 8.45835C10.4322 7.65919 10.6667 6.93702 10.6667 5.83335C10.6667 4.59568 10.175 3.40869 9.29987 2.53352C8.4247 1.65835 7.23772 1.16669 6.00004 1.16669Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
 
+                    <span className="text-[12px] text-black">{room.state.trim().replace(/\b\w/g, (char) => char.toUpperCase())}</span>
+                  </div>
                       {/* Overlay */}
-                      <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      {/* <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-100 flex items-center justify-center">
                         <Link
                           href={`/rooms/${generateSlug(room.property_title, room.id.toString())}`}
                           className="bg-[#10D1C1] text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
@@ -325,7 +376,7 @@ export default function RoomsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                           </svg>
                         </Link>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* Room Details */}
@@ -372,9 +423,9 @@ export default function RoomsPage() {
                                   />
                                 </svg>
                                 <span className="text-[12px]">{room.bathrooms}</span>
-                                <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
+                                {/* <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
                                   Bathrooms
-                                </span>
+                                </span> */}
                               </div>
 
                               {/* Bedrooms */}
@@ -395,9 +446,9 @@ export default function RoomsPage() {
                                   />
                                 </svg>
                                 <span className="text-[12px]">{room.bedrooms}</span>
-                                <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
+                                {/* <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
                                   Bedrooms
-                                </span>
+                                </span> */}
                               </div>
                             </div>
                           </div>
@@ -458,7 +509,8 @@ export default function RoomsPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
+              );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -475,7 +527,7 @@ export default function RoomsPage() {
         background: "linear-gradient(92.93deg, #9B30DF 0.5%, rgba(102, 14, 209, 0.8) 131.44%)",
       }}>
         <div className="flex items-center gap-[20px] pl-[15px] pr-[15px] py-[15px] md:pl-[40px] md:pr-[20px] md:py-[20px]">
-          <div className="w-[100%]">
+          <div className="">
             <h2 className="lg:text-[36px] md:text-[32px] lg:w-[450px] w-[100%] text-[26px] font-bold text-white leading-tight">Diverse rooms suited to your style or pocket</h2>
             {/* <div className="relative lg:w-[470px] max-w-[470px] w-[100%] mt-[20px] md:mt-[50px]" ref={dropdownRef}> */}
             <button
