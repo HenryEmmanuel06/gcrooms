@@ -44,3 +44,7 @@ body {
 .animate-drain {
   animation: drain 4s linear infinite;
 }
+
+input {
+  outline: none !important;
+}

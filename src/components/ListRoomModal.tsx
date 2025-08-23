@@ -578,20 +578,28 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
         likes: sanitizeText(formData.likes || '', 2000),
       };
       
-      // Final validation of sanitized data
-      if (!sanitizedData.property_title || !sanitizedData.location || 
-          sanitizedData.price === null || sanitizedData.bathrooms === null ||
-          !sanitizedData.description ||
-          sanitizedData.latitude === null || sanitizedData.longitude === null) {
-        throw new Error('Invalid data detected. Please check your inputs.');
+      // Final validation of sanitized data with clear messages
+      const invalids: string[] = [];
+      if (!sanitizedData.property_title) invalids.push('property title');
+      if (!sanitizedData.location) invalids.push('location');
+      if (sanitizedData.price === null) invalids.push('price');
+      if (sanitizedData.bathrooms === null) invalids.push('toilets');
+      if (!sanitizedData.description) invalids.push('description');
+      if (!selectedLocation || sanitizedData.latitude === null || sanitizedData.longitude === null) {
+        invalids.push('map location (select from suggestions)');
+        setValidationErrors(prev => ({ ...prev, location: 'Please select a location from the suggestions' }));
+      }
+      if (invalids.length > 0) {
+        alert('Please check these fields: ' + invalids.join(', '));
+        return;
       }
 
       roomData = {
         property_title: sanitizedData.property_title,
         location: sanitizedData.location,
         state: sanitizedData.state,
-        price: sanitizedData.price,
-        bathrooms: sanitizedData.bathrooms,
+        price: sanitizedData.price as number,
+        bathrooms: sanitizedData.bathrooms as number,
         bedrooms: sanitizedData.bedrooms || 0,
         room_size: sanitizedData.room_size,
         furniture: sanitizedData.furniture,
@@ -602,8 +610,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
         description: sanitizedData.description,
         room_features: sanitizedData.room_features,
         building_type: sanitizedData.building_type,
-        latitude: sanitizedData.latitude,
-        longitude: sanitizedData.longitude,
+        latitude: sanitizedData.latitude as number,
+        longitude: sanitizedData.longitude as number,
         created_at: new Date().toISOString(),
         room_img_1: uploadedImages[0] || undefined,
         room_img_2: uploadedImages[1] || undefined,
@@ -956,7 +964,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-[1200px] max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-[1250px] max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -994,9 +1002,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="px-[60px] py-[30px] space-y-6">
               {currentStep === 1 && (
-              <div className="flex gap-[80px]">
+              <div className="flex gap-[50px]">
                 {/* Left: Images Upload */}
                 <div className="w-[400px]">
 
@@ -1253,7 +1261,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                 {/* House no. (20%) */}
                 <div className="md:col-span-2">
                   <input
-                    type="text"
+                    type="number"
                     required
                     value={formData.house_no}
                     onChange={(e) => handleInputChange('house_no', e.target.value)}
@@ -1309,7 +1317,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                 {/* Bedrooms (30%) */}
                 <div className="md:col-span-3">
                   <input
-                    type="text"
+                    type="number"
                     required
                     value={formData.bedrooms}
                     onChange={(e) => handleInputChange('bedrooms', e.target.value)}
