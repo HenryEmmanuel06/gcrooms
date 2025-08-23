@@ -1,9 +1,9 @@
 "use client";
-import Image from 'next/image';
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
-import dynamic from 'next/dynamic';
+import Image from 'next/image';
+// dynamic import not needed currently
 import { 
   sanitizeText, 
   sanitizeNumber, 
@@ -14,11 +14,7 @@ import {
   RateLimiter 
 } from '../utils/security';
 
-// Dynamically import the map component to avoid SSR issues
-const MapComponent = dynamic(() => import('./MapComponent'), {
-  ssr: false,
-  loading: () => <div className="w-full h-48 bg-gray-200 animate-pulse rounded-lg"></div>
-});
+// MapComponent not used currently; remove to satisfy lint. Re-add when needed.
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -160,7 +156,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [isLocationSearching, setIsLocationSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: string; lon: string } | null>(null);
-  const [showMap, setShowMap] = useState(false);
+  const [, setShowMap] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -187,7 +183,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const locationRateLimiter = useRef(new RateLimiter(5, 10000)); // 5 requests per 10 seconds
   const [profileImageUrl, setProfileImageUrl] = useState<string>('');
   const [uploadingProfile, setUploadingProfile] = useState<boolean>(false);
-  const [currentSlotIndex, setCurrentSlotIndex] = useState<number | null>(null);
+  const [, setCurrentSlotIndex] = useState<number | null>(null);
   const [uploadingSlotIndex, setUploadingSlotIndex] = useState<number | null>(null);
   // Step 2 portrait uploads
   const [portrait1Url, setPortrait1Url] = useState<string>('');
@@ -652,7 +648,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           `Phone: ${sanitizedData.phone_number}`
         ].join('\n');
         alert(`Debug: Preparing insert with values\n\n${debugSummary}`);
-      } catch (_) { /* ignore alert failures */ }
+      } catch { /* ignore alert failures */ }
 
       // Insert the room data
       await insertRoomData(roomData!);
@@ -701,8 +697,8 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     } catch (error) {
       // Show more detailed error information
       let errorMessage = 'Unknown error';
-      if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
-        errorMessage = (error as any).message;
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
 
       // Handle specific Supabase/common errors
@@ -838,61 +834,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
   };
 
-  // Handle secure image upload with comprehensive validation
-  const handleImageUpload = async (files: FileList) => {
-    if (uploadedImages.length >= 5) {
-      alert('Maximum 5 images allowed');
-      return;
-    }
-
-    setUploadingImages(true);
-    const errors: string[] = [];
-
-    try {
-      const fileArray = Array.from(files);
-      const newImages: string[] = [];
-
-      for (let i = 0; i < fileArray.length && uploadedImages.length + newImages.length < 5; i++) {
-        const file = fileArray[i];
-        
-        // Comprehensive file validation
-        const validation = await validateImageFile(file);
-        if (!validation.isValid) {
-          errors.push(`${file.name}: ${validation.error}`);
-          continue;
-        }
-
-        try {
-          // Compress image
-          const compressedBlob = await compressImage(file);
-          
-          // Generate secure filename
-          const fileName = generateSecureFilename(file.name);
-          
-          // Upload to storage
-          const imageUrl = await uploadImageToStorage(compressedBlob, fileName);
-          newImages.push(imageUrl);
-        } catch (uploadError) {
-          errors.push(`${file.name}: Upload failed`);
-          console.error('Individual file upload error:', uploadError);
-        }
-      }
-
-      if (newImages.length > 0) {
-        setUploadedImages(prev => [...prev, ...newImages]);
-      }
-      
-      if (errors.length > 0) {
-        alert(`Some files could not be uploaded:\n${errors.join('\n')}`);
-      }
-      
-    } catch (error) {
-      console.error('Image upload error:', error);
-      alert('Failed to upload images. Please try again.');
-    } finally {
-      setUploadingImages(false);
-    }
-  };
+  // Handle secure image upload with comprehensive validation (removed unused implementation)
 
   // Upload a single image to a specific slot index (0..4)
   const handleSlotImageUpload = async (files: FileList, slot: number) => {
@@ -1073,7 +1015,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     )}
                     {uploadedImages[0] ? (
                       <div className="relative w-full h-full">
-                        <img src={uploadedImages[0]} alt="living room" className="w-full h-full object-cover" />
+                        <Image src={uploadedImages[0]} alt="living room" fill className="object-cover" />
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); removeImage(0); }}
@@ -1116,7 +1058,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     )}
                     {uploadedImages[1] ? (
                       <div className="relative w-full h-full">
-                        <img src={uploadedImages[1]} alt="apartment surroundings" className="w-full h-full object-cover" />
+                        <Image src={uploadedImages[1]} alt="apartment surroundings" fill className="object-cover" />
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); removeImage(1); }}
@@ -1158,7 +1100,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                         )}
                         {uploadedImages[i] ? (
                           <div className="relative w-full h-full">
-                            <img src={uploadedImages[i]} alt={i===2? 'bedroom': i===3? 'kitchen':'restroom'} className="w-full h-full object-cover" />
+                            <Image src={uploadedImages[i]} alt={i===2? 'bedroom': i===3? 'kitchen':'restroom'} fill className="object-cover" />
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); removeImage(i); }}
@@ -1205,7 +1147,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       aria-label="Upload profile image"
                     >
                       {profileImageUrl ? (
-                        <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
+                        <Image src={profileImageUrl} alt="Profile" fill className="object-cover" />
                       ) : (
                         <span className="text-[10px] text-gray-500 leading-tight text-center px-2">Enter a clear photo of you</span>
                       )}
@@ -1488,7 +1430,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                         </>
                       ) : (
                         <div className="w-full h-full relative">
-                          <img src={portrait1Url} alt="Portrait 1" className="w-full h-full object-cover" />
+                          <Image src={portrait1Url} alt="Portrait 1" fill className="object-cover" />
                           <button type="button" className="absolute top-2 right-2 bg-white/80 text-xs px-2 py-1 rounded" onClick={(e)=>{e.stopPropagation(); setPortrait1Url('');}}>Remove</button>
                         </div>
                       )}
@@ -1519,7 +1461,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                         </>
                       ) : (
                         <div className="w-full h-full relative">
-                          <img src={portrait2Url} alt="Portrait 2" className="w-full h-full object-cover" />
+                          <Image src={portrait2Url} alt="Portrait 2" fill className="object-cover" />
                           <button type="button" className="absolute top-2 right-2 bg-white/80 text-xs px-2 py-1 rounded" onClick={(e)=>{e.stopPropagation(); setPortrait2Url('');}}>Remove</button>
                         </div>
                       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -302,7 +303,7 @@ export default function RoomsPage() {
                 const idx = imageIndexByRoom[room.id] ?? 0;
                 const currentImg = images[idx] || room.room_img_1;
 
-                const goPrev = (e: any) => {
+                const goPrev = (e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (images.length === 0) return;
@@ -312,7 +313,7 @@ export default function RoomsPage() {
                   }));
                 };
 
-                const goNext = (e: any) => {
+                const goNext = (e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (images.length === 0) return;
