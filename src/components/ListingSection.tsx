@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
@@ -34,6 +35,7 @@ interface Room {
   room_img_1?: string;
   state: string;
   is_verified: string;
+  profile_image?: string;
 }
 
 // Generate URL slug from property title
@@ -196,6 +198,9 @@ export default function ListingSection() {
                         </svg>
                       </div>
                     )}
+<div className="absolute bottom-[15px] left-[10px] w-[30px] h-[30px] rounded-[50%] bg-[#FFBE06]/10 flex items-center justify-center">
+<Image src={room.profile_image || '/images/rooms-page-logo.svg'} alt="profile" width={30} height={30} className="rounded-[50%]" />
+</div>
 
                     {/* Overlay */}
                     <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -210,8 +215,10 @@ export default function ListingSection() {
 
                   {/* Room Details */}
                   <div className="pt-[15px]">
-                    <h4 className="font-semibold text-lg text-black mb-[20px]">
-                      {room.property_title}
+                    <h4 className="font-semibold text-lg text-black mb-[20px] pl-[5px]">
+                      {room.property_title.length > 20
+                        ? room.property_title.substring(0, 20) + "..."
+                        : room.property_title}
                     </h4>
 
                     <div className="flex items-end h-[45px] justify-between transition-all group-hover:flex-col group-hover:items-start">

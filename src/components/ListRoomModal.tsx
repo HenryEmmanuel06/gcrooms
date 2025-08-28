@@ -189,6 +189,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [portrait1Url, setPortrait1Url] = useState<string>('');
   const [portrait2Url, setPortrait2Url] = useState<string>('');
   const [uploadingPortraitIndex, setUploadingPortraitIndex] = useState<0 | 1 | null>(null);
+  // Success popup state
+  const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
+  
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -213,6 +216,22 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       }
     };
   }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, [isOpen]);
 
   // Search for location suggestions using Nominatim with rate limiting
   const searchLocation = async (query: string) => {
@@ -457,8 +476,22 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     if (!formData.about_self || !formData.about_self.trim()) {
       errors.about_self = 'Please tell us about yourself';
     }
+    // Images validation
+    if (!profileImageUrl) {
+      errors.profile_image = 'Profile image is required';
+    }
+    const missingGallery: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      if (!uploadedImages[i]) {
+        errors[`gallery${i}`] = 'Required';
+        missingGallery.push(i);
+      }
+    }
     if (!portrait1Url) {
-      errors.portrait1 = 'A profile photo is required';
+      errors.portrait1 = 'Portrait image is required';
+    }
+    if (!portrait2Url) {
+      errors.portrait2 = 'Portrait image is required';
     }
     
     setValidationErrors(errors);
@@ -522,6 +555,13 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
     if (!formData.description.trim()) {
       errors.description = 'Description is required';
+    }
+
+    // Require all Step 1 gallery images (slots 0-4)
+    for (let i = 0; i < 5; i++) {
+      if (!uploadedImages[i]) {
+        errors[`gallery${i}`] = 'Required';
+      }
     }
 
     setValidationErrors(errors);
@@ -660,48 +700,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
       // Insert the room data
       await insertRoomData(roomData!);
+      setShowSuccessPopup(true);
 
-      alert('Room listed successfully!');
-      onClose();
-      // Reset form
-      setFormData({
-        property_title: '',
-        location: '',
-        state: '',
-        price: '',
-        bathrooms: '',
-        bedrooms: '',
-        room_size: '',
-        furniture: '',
-        furnishing: [],
-        duration: '',
-        house_no: '',
-        wifi_zone: false,
-        description: '',
-        room_features: '',
-        building_type: '',
-        // Step 2
-        full_name: '',
-        gender: '',
-        phone_number: '',
-        email_address: '',
-        religion: '',
-        status: '',
-        age_range: '',
-        pet: '',
-        about_self: '',
-        dislikes: '',
-        likes: '',
-      });
-      setSelectedLocation(null);
-      setShowMap(false);
-      setUploadedImages([]);
-      setProfileImageUrl('');
-      setPortrait1Url('');
-      setPortrait2Url('');
-      setValidationErrors({});
-      setCurrentStep(1);
-      locationRateLimiter.current.reset('location_search');
+      // Do not immediately close/reset; wait for user action in success popup
     } catch (error) {
       // Show more detailed error information
       let errorMessage = 'Unknown error';
@@ -736,6 +737,53 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Submit for verification action removed (no longer used)
+
+  // Go back action: close popup and reset/close modal
+  const handleSuccessGoBack = () => {
+    setShowSuccessPopup(false);
+    onClose();
+    // Reset form
+    setFormData({
+      property_title: '',
+      location: '',
+      state: '',
+      price: '',
+      bathrooms: '',
+      bedrooms: '',
+      room_size: '',
+      furniture: '',
+      furnishing: [],
+      duration: '',
+      house_no: '',
+      wifi_zone: false,
+      description: '',
+      room_features: '',
+      building_type: '',
+      // Step 2
+      full_name: '',
+      gender: '',
+      phone_number: '',
+      email_address: '',
+      religion: '',
+      status: '',
+      age_range: '',
+      pet: '',
+      about_self: '',
+      dislikes: '',
+      likes: '',
+    });
+    setSelectedLocation(null);
+    setShowMap(false);
+    setUploadedImages([]);
+    setProfileImageUrl('');
+    setPortrait1Url('');
+    setPortrait2Url('');
+    setValidationErrors({});
+    setCurrentStep(1);
+    locationRateLimiter.current.reset('location_search');
   };
 
   // Handle input change with validation and sanitization
@@ -958,7 +1006,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-          onClick={onClose}
+          onClick={() => { if (!showSuccessPopup) onClose(); }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -968,7 +1016,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between py-4 px-[60px] border-b border-gray-200">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-700">Steps: {currentStep}/2</span>
                 
@@ -1031,10 +1079,10 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                         >
                           Remove
                         </button>
-                        {/* Validation under portraits */}
-                    {validationErrors.portrait1 && (
-                      <p className="col-span-2 text-red-500 text-sm">{validationErrors.portrait1}</p>
-                    )}
+                        {/* Inline error for gallery slot 0 */}
+                        {validationErrors.gallery0 && !uploadedImages[0] && (
+                          <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded">{validationErrors.gallery0}</span>
+                        )}
                   </div>
                     ) : (
                       <div className="flex flex-col items-center text-gray-500">
@@ -1042,6 +1090,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 <path d="M2 17V19C2 19.5304 2.22388 20.0391 2.6224 20.4142C3.02091 20.7893 3.56141 21 4.125 21H16.875C17.4386 21 17.9791 20.7893 18.3776 20.4142C18.7761 20.0391 19 19.5304 19 19V17M5.1875 11L10.5 16M10.5 16L15.8125 11M10.5 16V4" stroke="#111111" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg></span>
                         <span className="mt-2 text-sm">living room image</span>
+                        {validationErrors.gallery0 && (
+                          <span className="mt-1 text-red-600 text-[12px]">{validationErrors.gallery0}</span>
+                        )}
                       </div>
                     )}
                     {uploadingSlotIndex === 0 && (
@@ -1081,6 +1132,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 <path d="M2 17V19C2 19.5304 2.22388 20.0391 2.6224 20.4142C3.02091 20.7893 3.56141 21 4.125 21H16.875C17.4386 21 17.9791 20.7893 18.3776 20.4142C18.7761 20.0391 19 19.5304 19 19V17M5.1875 11L10.5 16M10.5 16L15.8125 11M10.5 16V4" stroke="#111111" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg></span>
                         <span className="mt-2 text-sm">apartment surrounding image</span>
+                        {validationErrors.gallery1 && (
+                          <span className="mt-1 text-red-600 text-[12px]">{validationErrors.gallery1}</span>
+                        )}
                       </div>
                     )}
                     {uploadingSlotIndex === 1 && (
@@ -1123,12 +1177,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 <path d="M2 17V19C2 19.5304 2.22388 20.0391 2.6224 20.4142C3.02091 20.7893 3.56141 21 4.125 21H16.875C17.4386 21 17.9791 20.7893 18.3776 20.4142C18.7761 20.0391 19 19.5304 19 19V17M5.1875 11L10.5 16M10.5 16L15.8125 11M10.5 16V4" stroke="#111111" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg></span>
                             <span className="mt-1">{i===2? 'bedroom image': i===3? 'kitchen image':'restroom image'}</span>
+                            {validationErrors[`gallery${i}` as keyof typeof validationErrors] && (
+                              <span className="mt-1 text-red-600 text-[11px]">{validationErrors[`gallery${i}` as keyof typeof validationErrors]}</span>
+                            )}
                           </div>
                         )}
                         {uploadingSlotIndex === i && (
                           <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
                             <div className="w-6 h-6 border-2 border-[#10D1C1] border-t-transparent rounded-full animate-spin" />
                           </div>
+                        )}
+                        {/* Inline error badge bottom-left when missing */}
+                        {validationErrors[`gallery${i}` as keyof typeof validationErrors] && !uploadedImages[i] && (
+                          <span className="absolute bottom-1 left-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">{validationErrors[`gallery${i}` as keyof typeof validationErrors]}</span>
                         )}
                       </div>
                     ))}
@@ -1162,6 +1223,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       {uploadingProfile && (
                         <span className="absolute inset-0 bg-white/60 flex items-center justify-center text-xs">Uploading...</span>
                       )}
+                      {validationErrors.profile_image && !profileImageUrl && (
+                        <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[11px] text-red-600">{validationErrors.profile_image}</span>
+                      )}
                     </button>
                   </div>
 
@@ -1173,7 +1237,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       maxLength={100}
                       value={formData.property_title}
                       onChange={(e) => handleInputChange('property_title', e.target.value)}
-                      className={`w-full px-3 py-5 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                      className={`w-full px-3 py-5 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[20px] ${
                         validationErrors.property_title ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Apartment Title"
@@ -1193,7 +1257,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     maxLength={200}
                     value={formData.location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.location ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Start typing location..."
@@ -1242,7 +1306,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.state}
                     onChange={(e) => handleInputChange('state', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${
                       validationErrors.state ? 'border-red-500' : 'border-gray-300'
                     }`}
                     aria-invalid={!!validationErrors.state}
@@ -1265,7 +1329,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.house_no}
                     onChange={(e) => handleInputChange('house_no', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.house_no ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="House no."
@@ -1283,7 +1347,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.price}
                     onChange={(e) => handleInputChange('price', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.price ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter amount"
@@ -1300,7 +1364,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.duration}
                     onChange={(e) => handleInputChange('duration', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${
                       validationErrors.duration ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
@@ -1321,7 +1385,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.bedrooms}
                     onChange={(e) => handleInputChange('bedrooms', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.bedrooms ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Bedrooms"
@@ -1339,7 +1403,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     required
                     value={formData.bathrooms}
                     onChange={(e) => handleInputChange('bathrooms', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.bathrooms ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Restroom"
@@ -1376,7 +1440,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   {isFurnishingOpen && (
                     <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                       {FURNISHING_OPTIONS.map(opt => (
-                        <label key={opt} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer text-black">
+                        <label key={opt} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer placeholder-gray-500 text-black text-[14px]">
                           <input
                             type="checkbox"
                             checked={formData.furnishing.includes(opt)}
@@ -1401,7 +1465,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     rows={4}
-                    className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${
+                    className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.description ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Property agents are well-educated professionals..."
@@ -1447,6 +1511,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                           <div className="w-6 h-6 border-2 border-[#10D1C1] border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
+                      {validationErrors.portrait1 && !portrait1Url && (
+                        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded">{validationErrors.portrait1}</span>
+                      )}
                     </label>
 
                     {/* Portrait 2 */}
@@ -1478,78 +1545,93 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                           <div className="w-6 h-6 border-2 border-[#10D1C1] border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
+                      {validationErrors.portrait2 && !portrait2Url && (
+                        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded">{validationErrors.portrait2}</span>
+                      )}
                     </label>
                   </div>
 
                   {/* Right: Fields */}
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-1">
-                      <input type="text" value={formData.full_name||''} onChange={(e)=>handleInputChange('full_name', e.target.value)} placeholder="Your full name" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${validationErrors.full_name? 'border-red-500':'border-gray-300'}`} />
-                      {validationErrors.full_name && (<p className="text-red-500 text-sm mt-1">{validationErrors.full_name}</p>)}
-                    </div>
-                    <div className="md:col-span-1">
-                      <select value={formData.gender||''} onChange={(e)=>handleInputChange('gender', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${validationErrors.gender? 'border-red-500':'border-gray-300'}`}>
-                        <option value="">Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-1">
-                      <input type="email" value={formData.email_address||''} onChange={(e)=>handleInputChange('email_address', e.target.value)} placeholder="Enter email address" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${validationErrors.email_address? 'border-red-500':'border-gray-300'}`} />
-                      {validationErrors.email_address && (<p className="text-red-500 text-sm mt-1">{validationErrors.email_address}</p>)}
-                    </div>
-                    <div className="md:col-span-1">
-                      <input type="tel" value={formData.phone_number||''} onChange={(e)=>handleInputChange('phone_number', e.target.value)} placeholder="Enter phone number" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${validationErrors.phone_number? 'border-red-500':'border-gray-300'}`} />
-                      {validationErrors.phone_number && (<p className="text-red-500 text-sm mt-1">{validationErrors.phone_number}</p>)}
-                    </div>
-                    <div className="md:col-span-1">
-                      <select value={formData.religion||''} onChange={(e)=>handleInputChange('religion', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300">
-                        <option value="">Religion</option>
-                        <option>Christianity</option>
-                        <option>Islam</option>
-                        <option>Traditional</option>
-                        <option>Other</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-1">
-                      <select value={formData.status||''} onChange={(e)=>handleInputChange('status', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300">
-                        <option value="">Status</option>
-                        <option>Student</option>
-                        <option>Employed</option>
-                        <option>Self-employed</option>
-                        <option>Unemployed</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-1">
-                      <select value={formData.age_range||''} onChange={(e)=>handleInputChange('age_range', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300">
-                        <option value="">Age range</option>
-                        <option>18-24</option>
-                        <option>25-34</option>
-                        <option>35-44</option>
-                        <option>45+</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-1">
-                      <select value={formData.pet||''} onChange={(e)=>handleInputChange('pet', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300">
-                        <option value="">Pet</option>
-                        <option>Yes</option>
-                        <option>No</option>
-                      </select>
+                  <div className="flex-1 space-y-4">
+                    {/* Row 1: Full name 70% | Gender 30% */}
+                    <div className="grid grid-cols-1 md:[grid-template-columns:70%_30%] gap-4">
+                      <div>
+                        <input type="text" value={formData.full_name||''} onChange={(e)=>handleInputChange('full_name', e.target.value)} placeholder="Your full name" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.full_name? 'border-red-500':'border-gray-300'}`} />
+                        {validationErrors.full_name && (<p className="text-red-500 text-sm mt-1">{validationErrors.full_name}</p>)}
+                      </div>
+                      <div>
+                        <select value={formData.gender||''} onChange={(e)=>handleInputChange('gender', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${validationErrors.gender? 'border-red-500':'border-gray-300'}`}> 
+                          <option value="">Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="md:col-span-2">
+                    {/* Row 2: Email 60% | Phone 40% */}
+                    <div className="grid grid-cols-1 md:[grid-template-columns:60%_40%] gap-4">
+                      <div>
+                        <input type="email" value={formData.email_address||''} onChange={(e)=>handleInputChange('email_address', e.target.value)} placeholder="Enter email address" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.email_address? 'border-red-500':'border-gray-300'}`} />
+                        {validationErrors.email_address && (<p className="text-red-500 text-sm mt-1">{validationErrors.email_address}</p>)}
+                      </div>
+                      <div>
+                        <input type="tel" value={formData.phone_number||''} onChange={(e)=>handleInputChange('phone_number', e.target.value)} placeholder="Enter phone number" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.phone_number? 'border-red-500':'border-gray-300'}`} />
+                        {validationErrors.phone_number && (<p className="text-red-500 text-sm mt-1">{validationErrors.phone_number}</p>)}
+                      </div>
+                    </div>
+
+                    {/* Row 3: Religion | Status | Age range | Pet (equal) */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <select value={formData.religion||''} onChange={(e)=>handleInputChange('religion', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                          <option value="">Religion</option>
+                          <option>Christianity</option>
+                          <option>Islam</option>
+                          <option>Traditional</option>
+                          <option>Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select value={formData.status||''} onChange={(e)=>handleInputChange('status', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                          <option value="">Status</option>
+                          <option>Student</option>
+                          <option>Employed</option>
+                          <option>Self-employed</option>
+                          <option>Unemployed</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select value={formData.age_range||''} onChange={(e)=>handleInputChange('age_range', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                          <option value="">Age range</option>
+                          <option>18-24</option>
+                          <option>25-34</option>
+                          <option>35-44</option>
+                          <option>45+</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select value={formData.pet||''} onChange={(e)=>handleInputChange('pet', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                          <option value="">Pet</option>
+                          <option>Yes</option>
+                          <option>No</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Textareas */}
+                    <div>
                       <label className="block text-gray-700 text-sm mb-1">Tell us about yourself:</label>
-                      <textarea rows={4} value={formData.about_self||''} onChange={(e)=>handleInputChange('about_self', e.target.value)} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black ${validationErrors.about_self? 'border-red-500':'border-gray-300'}`} placeholder="Write a short bio..." />
+                      <textarea rows={4} value={formData.about_self||''} onChange={(e)=>handleInputChange('about_self', e.target.value)} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.about_self? 'border-red-500':'border-gray-300'}`} placeholder="Write a short bio..." />
                       {validationErrors.about_self && (<p className="text-red-500 text-sm mt-1">{validationErrors.about_self}</p>)}
                     </div>
-                    <div className="md:col-span-2">
+                    <div>
                       <label className="block text-gray-700 text-sm mb-1">My dislikes:</label>
-                      <textarea rows={3} value={formData.dislikes||''} onChange={(e)=>handleInputChange('dislikes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300" placeholder="Things you don't like..." />
+                      <textarea rows={3} value={formData.dislikes||''} onChange={(e)=>handleInputChange('dislikes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] border-gray-300" placeholder="Things you don't like..." />
                     </div>
-                    <div className="md:col-span-2">
+                    <div>
                       <label className="block text-gray-700 text-sm mb-1">My likes:</label>
-                      <textarea rows={3} value={formData.likes||''} onChange={(e)=>handleInputChange('likes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black border-gray-300" placeholder="Things you like..." />
+                      <textarea rows={3} value={formData.likes||''} onChange={(e)=>handleInputChange('likes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] border-gray-300" placeholder="Things you like..." />
                     </div>
                   </div>
                 </div>
@@ -1575,6 +1657,44 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                 </div>
               )}
             </form>
+
+            {/* Success Popup Overlay */}
+            <AnimatePresence>
+              {showSuccessPopup && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+                >
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-6 text-center border border-gray-200"
+                    onClick={(e)=>e.stopPropagation()}
+                  >
+                    <div className="mx-auto w-14 h-14 rounded-full bg-[#FFBE06]/20 flex items-center justify-center mb-4">
+                      <Image src="/images/rooms-page-logo.svg" alt="Listed" width={32} height={32} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-black mb-2">Room Listed!</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                      Thanks for listing on gcrooms!<br/>
+                      We'll notify you by email once your room is approved. A 5.9% commission applies to each booking, and your full details will be shared after confirmation.
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button
+                        type="button"
+                        onClick={handleSuccessGoBack}
+                        className="px-5 py-2 rounded-full border border-[#10D1C1] text-[#10D1C1] hover:bg-[#10D1C1]/10"
+                      >
+                        Go Back
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}

@@ -366,6 +366,7 @@ export default function RoomsPage() {
 
                     <span className="text-[12px] text-black">{room.state.trim().replace(/\b\w/g, (char) => char.toUpperCase())}</span>
                   </div>
+                  
                       {/* Overlay */}
                       {/* <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-100 flex items-center justify-center">
                         <Link
@@ -382,9 +383,11 @@ export default function RoomsPage() {
 
                     {/* Room Details */}
                     <div className="pt-[15px]">
-                      <h4 className="font-semibold text-lg text-black mb-[20px]">
-                        {room.property_title}
-                      </h4>
+                    <h4 className="font-semibold text-lg text-black mb-[20px] pl-[5px]">
+                      {room.property_title.length > 20
+    ? room.property_title.substring(0, 20) + "..."
+    : room.property_title}
+                    </h4>
 
                       <div className="flex items-end h-[45px] justify-between transition-all group-hover:flex-col group-hover:items-start">
                         {/* Price - moves up and expands on hover */}
