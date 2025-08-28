@@ -1680,7 +1680,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     <h3 className="text-xl font-semibold text-black mb-2">Room Listed!</h3>
                     <p className="text-gray-600 text-sm leading-relaxed mb-6">
                       Thanks for listing on gcrooms!<br/>
-                      We'll notify you by email once your room is approved. A 5.9% commission applies to each booking, and your full details will be shared after confirmation.
+                      We&apos;ll notify you by email once your room is approved. A 5.9% commission applies to each booking, and your full details will be shared after confirmation.
                     </p>
                     <div className="flex gap-3 justify-center">
                       <button
