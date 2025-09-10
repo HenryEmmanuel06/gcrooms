@@ -178,6 +178,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const emailValidateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Using per-slot inputs, no shared file input needed
   const profileInputRef = useRef<HTMLInputElement>(null);
   const locationRateLimiter = useRef(new RateLimiter(5, 10000)); // 5 requests per 10 seconds
@@ -192,6 +193,37 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   // Success popup state
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
   
+  // Email validation state (Abstract API)
+  const [emailChecking, setEmailChecking] = useState<boolean>(false);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
+
+
+  // Validate email with Abstract API on blur
+  const validateEmailWithAbstract = async (email: string) => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailValid(false);
+      setValidationErrors(prev => ({ ...prev, email_address: 'Enter a valid email format' }));
+      return;
+    }
+    try {
+      setEmailChecking(true);
+      const res = await fetch(`/api/validate-email?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: { valid: boolean; reason?: string } = await res.json();
+      const isValid = data.valid === true;
+      setEmailValid(isValid);
+      if (!isValid) {
+        setValidationErrors(prev => ({ ...prev, email_address: 'Email is not deliverable' }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, email_address: '' }));
+      }
+    } catch (err) {
+      console.error('Abstract email validation failed:', err);
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -208,14 +240,55 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Close furnishing dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isFurnishingOpen) {
+        const target = event.target as HTMLElement;
+        const furnishingContainer = target.closest('.relative.md\\:col-span-5');
+        if (!furnishingContainer || !furnishingContainer.querySelector('.absolute.z-20')) {
+          setIsFurnishingOpen(false);
+        }
+      }
+    };
+
+    if (isFurnishingOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFurnishingOpen]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
+      if (emailValidateTimeoutRef.current) {
+        clearTimeout(emailValidateTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Debounce email validation: validate 2s after user stops typing
+  useEffect(() => {
+    // Reset validation when field is empty
+    if (!formData.email_address) {
+      setEmailValid(null);
+      if (emailValidateTimeoutRef.current) clearTimeout(emailValidateTimeoutRef.current);
+      return;
+    }
+    if (emailValidateTimeoutRef.current) clearTimeout(emailValidateTimeoutRef.current);
+    emailValidateTimeoutRef.current = setTimeout(() => {
+      validateEmailWithAbstract(formData.email_address || '');
+    }, 2000);
+    return () => {
+      if (emailValidateTimeoutRef.current) clearTimeout(emailValidateTimeoutRef.current);
+    };
+  }, [formData.email_address]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -695,7 +768,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           `Email: ${sanitizedData.email_address}`,
           `Phone: ${sanitizedData.phone_number}`
         ].join('\n');
-        alert(`Debug: Preparing insert with values\n\n${debugSummary}`);
+        if (!confirm(`Confirm Your data\n\n${debugSummary}`)) {
+          return;
+        }
       } catch { /* ignore alert failures */ }
 
       // Insert the room data
@@ -816,6 +891,11 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           break;
         case 'email_address':
           sanitizedValue = sanitizeText(value, 200);
+          // reset api validation on edit
+          setEmailValid(null);
+          if (validationErrors.email_address) {
+            setValidationErrors(prev => ({ ...prev, email_address: '' }));
+          }
           break;
         case 'phone_number':
           sanitizedValue = value.replace(/[^0-9+]/g, '');
@@ -1419,23 +1499,25 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <button
                     type="button"
                     onClick={() => setIsFurnishingOpen(v => !v)}
-                    className={`w-full min-h-[42px] px-3 py-2 border rounded-full text-left focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black flex flex-wrap gap-2 ${
+                    className={`w-full h-[42px] px-3 py-2 border rounded-full text-left focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-black flex items-center overflow-x-auto overflow-y-hidden ${
                       validationErrors.furnishing ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400`}
                   >
-                    {formData.furnishing.length === 0 ? (
-                      <span className="text-gray-500">Select furnishing options</span>
-                    ) : (
-                      formData.furnishing.map(item => (
-                        <span key={item} className="bg-[#E6FFFB] text-[#0FB8A8] text-xs px-2 py-1 rounded-full flex items-center">
-                          {item}
-                          <span
-                            onClick={(e) => { e.stopPropagation(); removeFurnishingTag(item); }}
-                            className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
-                          >×</span>
-                        </span>
-                      ))
-                    )}
+                    <div className="flex gap-2 min-w-max">
+                      {formData.furnishing.length === 0 ? (
+                        <span className="text-gray-500 whitespace-nowrap">Select furnishing options</span>
+                      ) : (
+                        formData.furnishing.map(item => (
+                          <span key={item} className="bg-[#E6FFFB] text-[#0FB8A8] text-xs px-2 py-1 rounded-full flex items-center whitespace-nowrap">
+                            {item}
+                            <span
+                              onClick={(e) => { e.stopPropagation(); removeFurnishingTag(item); }}
+                              className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                            >×</span>
+                          </span>
+                        ))
+                      )}
+                    </div>
                   </button>
                   {isFurnishingOpen && (
                     <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -1571,9 +1653,26 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
 
                     {/* Row 2: Email 60% | Phone 40% */}
                     <div className="grid grid-cols-1 md:[grid-template-columns:60%_40%] gap-4">
-                      <div>
-                        <input type="email" value={formData.email_address||''} onChange={(e)=>handleInputChange('email_address', e.target.value)} placeholder="Enter email address" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.email_address? 'border-red-500':'border-gray-300'}`} />
-                        {validationErrors.email_address && (<p className="text-red-500 text-sm mt-1">{validationErrors.email_address}</p>)}
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={formData.email_address||''}
+                          onChange={(e)=>handleInputChange('email_address', e.target.value)}
+                          placeholder="Enter email address"
+                          className={`w-full pr-9 px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.email_address? 'border-red-500':'border-gray-300'}`}
+                        />
+                        {/* Status icon */}
+                        {emailChecking && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-[#10D1C1] border-t-transparent rounded-full animate-spin" aria-label="Checking email"></span>
+                        )}
+                        {!emailChecking && emailValid === true && (
+                          <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-label="Email valid">
+                            <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.2 7.25a1 1 0 0 1-1.43.005L3.29 9.17a1 1 0 1 1 1.42-1.41l3.06 3.05 6.49-6.54a1 1 0 0 1 1.444.02z" fill="currentColor"/>
+                          </svg>
+                        )}
+                        {validationErrors.email_address && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.email_address}</p>
+                        )}
                       </div>
                       <div>
                         <input type="tel" value={formData.phone_number||''} onChange={(e)=>handleInputChange('phone_number', e.target.value)} placeholder="Enter phone number" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.phone_number? 'border-red-500':'border-gray-300'}`} />
@@ -1649,7 +1748,14 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || !selectedLocation || uploadingImages || uploadingPortraitIndex !== null}
+                    disabled={
+                      isLoading ||
+                      !selectedLocation ||
+                      uploadingImages ||
+                      uploadingPortraitIndex !== null ||
+                      emailChecking ||
+                      emailValid !== true
+                    }
                     className="px-6 py-2 bg-[#10D1C1] text-white rounded-lg hover:bg-[#0FB8A8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploadingImages || uploadingPortraitIndex !== null ? 'Uploading Images...' : isLoading ? 'Listing Room...' : 'List Room'}
