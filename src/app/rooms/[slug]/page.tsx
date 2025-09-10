@@ -8,19 +8,42 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+interface Room {
+  id: number;
+  property_title: string;
+  location: string;
+  state: string;
+  price: number;
+  duration: string;
+  bedrooms: number;
+  bathrooms: number;
+  building_type: string;
+  room_size: number;
+  furnishing?: string[];
+  description?: string;
+  full_name: string;
+  email_address: string;
+  phone_number: string;
+  gender: string;
+  profile_image?: string;
+  room_img_1?: string;
+  room_img_2?: string;
+  room_img_3?: string;
+  room_img_4?: string;
+  room_img_5?: string;
+}
+
 interface RoomPageProps {
   params: Promise<{ slug: string; }>;
 }
 
 export default function RoomPage({ params }: RoomPageProps) {
-  const [room, setRoom] = useState<any>(null);
+  const [room, setRoom] = useState<Room | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [slug, setSlug] = useState('');
 
   useEffect(() => {
     async function getParams() {
       const resolvedParams = await params;
-      setSlug(resolvedParams.slug);
       const roomId = resolvedParams.slug.split('-').pop();
       
       if (roomId) {
@@ -81,7 +104,7 @@ export default function RoomPage({ params }: RoomPageProps) {
                         }`}
                       >
                         <Image
-                          src={img}
+                          src={img || ''}
                           alt={`Room ${idx + 1}`}
                           fill
                           className="object-cover"
@@ -149,7 +172,7 @@ export default function RoomPage({ params }: RoomPageProps) {
                 <div className="bg-purple-100 p-3 rounded-lg flex items-center gap-2">
                   <span className="text-sm">📐 {room.room_size} sq ft</span>
                 </div>
-                {room.furnishing?.length > 0 && (
+                {room.furnishing?.length !== undefined && room.furnishing?.length > 0 && (
                   <div className="bg-purple-100 p-3 rounded-lg flex items-center gap-2">
                     <span className="text-sm">🪑 Furnished</span>
                   </div>

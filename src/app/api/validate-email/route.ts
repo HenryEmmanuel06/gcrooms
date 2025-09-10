@@ -1,5 +1,12 @@
 import { NextRequest } from 'next/server';
 
+interface AbstractApiResponse {
+  deliverability?: string;
+  is_valid_format?: {
+    value?: boolean;
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -30,7 +37,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const data: any = await res.json();
+    const data: AbstractApiResponse = await res.json();
     const deliverable = (data && data.deliverability) === 'DELIVERABLE';
     const formatOk = data?.is_valid_format?.value === true;
     const valid = Boolean(deliverable && formatOk);
