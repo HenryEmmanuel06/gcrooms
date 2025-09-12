@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     console.log('✅ Found existing record:', existingRecord);
 
     // Update with all payment fields now that we know they exist
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       transaction_id: transaction.id,
       transaction_status: transaction.status,
       amount: transaction.amount / 100, // Convert from kobo to naira

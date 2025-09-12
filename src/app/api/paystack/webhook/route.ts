@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
+type PaystackChargeData = {
+  reference: string;
+  id: string | number;
+  amount: number; // in kobo
+  customer: { email: string };
+  status: string;
+  gateway_response?: string;
+  paid_at?: string;
+  currency?: string;
+};
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -82,7 +93,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleChargeSuccess(data: any) {
+async function handleChargeSuccess(data: PaystackChargeData) {
   try {
     const connectionAttemptId = data.reference;
     const transactionId = data.id;
@@ -133,7 +144,7 @@ async function handleChargeSuccess(data: any) {
   }
 }
 
-async function handleChargeFailed(data: any) {
+async function handleChargeFailed(data: PaystackChargeData) {
   try {
     const connectionAttemptId = data.reference;
     const transactionId = data.id;

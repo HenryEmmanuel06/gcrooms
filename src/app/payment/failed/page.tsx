@@ -92,7 +92,7 @@ export default async function PaymentFailedPage({ searchParams }: { searchParams
 
           <div className="space-y-3">
             <p className="text-sm text-gray-600">
-              Don't worry! No money has been charged to your account. You can try again or contact support if you need assistance.
+              Don&apos;t worry! No money has been charged to your account. You can try again or contact support if you need assistance.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">
