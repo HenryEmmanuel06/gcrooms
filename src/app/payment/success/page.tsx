@@ -13,8 +13,9 @@ async function getBaseUrlFromHeaders(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-export default async function PaymentSuccessPage({ searchParams }: { searchParams: { reference?: string } }) {
-  const reference = searchParams?.reference;
+export default async function PaymentSuccessPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const params = await searchParams;
+  const reference = params?.reference;
   if (!reference) {
     redirect('/payment/failed?error=missing_reference');
   }

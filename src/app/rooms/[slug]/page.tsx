@@ -51,7 +51,6 @@ export default function RoomPage({ params }: RoomPageProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [backgroundImageIndex, setBackgroundImageIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const backgroundImages = [
@@ -79,8 +78,9 @@ export default function RoomPage({ params }: RoomPageProps) {
 
   // Background image rotation effect
   useEffect(() => {
+    // Auto-rotate the CTA background carousel using currentImageIndex
     intervalRef.current = setInterval(() => {
-      setBackgroundImageIndex((prevIndex) =>
+      setCurrentImageIndex((prevIndex) =>
         (prevIndex + 1) % backgroundImages.length
       );
     }, 4000);
@@ -292,15 +292,17 @@ export default function RoomPage({ params }: RoomPageProps) {
                     return (
                       <div key={index} className="flex items-center gap-3 p-3">
                         <div className="w-6 h-6 flex-shrink-0">
-                          <img
-                            src={iconPath}
-                            alt={item}
-                            className="w-full h-full"
-                            onError={(e) => {
-                              e.currentTarget.src = '/images/furnishing/default_icon.svg';
-                            }}
-                          />
-                        </div>
+                        <Image
+                          src={iconPath}
+                          alt={item}
+                          width={24}
+                          height={24}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = '/images/furnishing/default_icon.svg';
+                          }}
+                        />
+                      </div>
                         <span className="text-[16px] text-black tracking-wide">{item}</span>
                       </div>
                     );
@@ -319,9 +321,11 @@ export default function RoomPage({ params }: RoomPageProps) {
               <div className="grid grid-cols-2 gap-4">
                 {room.potrait_img_1 && (
                   <div className="rounded-2xl overflow-hidden">
-                    <img
+                    <Image
                       src={room.potrait_img_1}
                       alt="Roommate 1"
+                      width={1200}
+                      height={470}
                       className="w-full h-[470px] object-cover"
                     />
                   </div>
@@ -329,9 +333,11 @@ export default function RoomPage({ params }: RoomPageProps) {
 
                 {room.potrait_img_2 && (
                   <div className="rounded-2xl overflow-hidden">
-                    <img
+                    <Image
                       src={room.potrait_img_2}
                       alt="Roommate 2"
+                      width={1200}
+                      height={470}
                       className="w-full h-[470px] object-cover"
                     />
                   </div>

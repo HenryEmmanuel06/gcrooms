@@ -13,9 +13,10 @@ async function getBaseUrlFromHeaders(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-export default async function PaymentFailedPage({ searchParams }: { searchParams: { reference?: string, error?: string } }) {
-  const reference = searchParams?.reference;
-  const errorParam = searchParams?.error;
+export default async function PaymentFailedPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const params = await searchParams;
+  const reference = params?.reference;
+  const errorParam = params?.error;
 
   if (!reference) {
     // if no reference at all, just render generic failed
