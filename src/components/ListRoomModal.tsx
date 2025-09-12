@@ -222,6 +222,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [emailChecking, setEmailChecking] = useState<boolean>(false);
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
 
+  // Helper function to format number with commas
+  const formatNumberWithCommas = (value: string): string => {
+    // Remove all non-digit characters
+    const numericValue = value.replace(/[^\d]/g, '');
+    // Add commas for thousands
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  // Helper function to remove commas and get numeric value
+  const getNumericValue = (value: string): string => {
+    return value.replace(/,/g, '');
+  };
+
 
   // Validate email with Abstract API on blur
   const validateEmailWithAbstract = async (email: string) => {
@@ -957,6 +970,10 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     if (typeof value === 'string') {
       switch (field) {
         case 'price':
+          // For price field: handle comma formatting
+          const numericPrice = getNumericValue(value);
+          sanitizedValue = numericPrice;
+          break;
         case 'bathrooms':
         case 'bedrooms':
         case 'room_size':
@@ -1531,13 +1548,13 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <input
                     type="text"
                     required
-                    value={formData.price}
+                    value={formatNumberWithCommas(formData.price)}
                     onChange={(e) => handleInputChange('price', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
                       validationErrors.price ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter amount"
-                    pattern="[0-9]+(\.[0-9]{1,2})?"
+                    pattern="[0-9,]+(\.[0-9]{1,2})?"
                   />
                   {validationErrors.price && (
                     <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>
