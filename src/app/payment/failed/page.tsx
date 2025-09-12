@@ -74,7 +74,9 @@ export default async function PaymentFailedPage({ searchParams }: { searchParams
   return (
     <>
       <Navbar />
-      <div className="flex items-center justify-center p-4 pt-[120px]">
+      <div className="flex items-center justify-center p-4 pt-[120px] h-[100vh]" style={{
+        maxHeight: "900px",
+      }}>
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="mb-6">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
