@@ -26,7 +26,7 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} antialiased`}
       >
         <Navbar />
-        <main className="min-h-screen">
+        <main>
           {children}
         </main>
         <Footer />

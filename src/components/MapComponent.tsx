@@ -24,7 +24,7 @@ export default function MapComponent({ lat, lng }: MapComponentProps) {
     if (!mapRef.current || mapInstanceRef.current) return;
 
     // Initialize the map
-    const map = L.map(mapRef.current).setView([lat, lng], 15);
+    const map = L.map(mapRef.current).setView([lat, lng], 12);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -53,7 +53,7 @@ export default function MapComponent({ lat, lng }: MapComponentProps) {
   // Update map view when coordinates change
   useEffect(() => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([lat, lng], 15);
+      mapInstanceRef.current.setView([lat, lng], 12);
       
       // Clear existing markers and add new one
       mapInstanceRef.current.eachLayer((layer) => {
@@ -72,8 +72,8 @@ export default function MapComponent({ lat, lng }: MapComponentProps) {
   return (
     <div 
       ref={mapRef} 
-      className="w-full h-64 rounded-lg"
-      style={{ minHeight: '256px' }}
+      className="w-full h-[300px] rounded-lg"
+      style={{ minHeight: '300px' }}
     />
   );
 }

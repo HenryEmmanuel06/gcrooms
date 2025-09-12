@@ -11,7 +11,9 @@ import {
   isValidCoordinate, 
   validateImageFile, 
   generateSecureFilename, 
-  RateLimiter 
+  RateLimiter,
+  sanitizeStreet,
+  isValidStreet
 } from '../utils/security';
 
 // MapComponent not used currently; remove to satisfy lint. Re-add when needed.
@@ -54,6 +56,7 @@ interface FormData {
   furnishing: string[]; // new multi-select field
   duration: string; // new duration text field
   house_no: string; // required in form (initialized as empty string)
+  street: string; // street address field
   wifi_zone: boolean;
   description: string;
   room_features: string;
@@ -86,6 +89,7 @@ interface RoomData {
   furnishing?: string[]; // new
   duration?: string; // new
   house_no?: number; // optional numeric
+  street?: string; // street address field
   wifi_zone: boolean;
   description: string;
   room_features: string;
@@ -133,6 +137,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     furnishing: [],
     duration: '',
     house_no: '',
+    street: '',
     wifi_zone: false,
     description: '',
     room_features: '',
@@ -163,17 +168,37 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isFurnishingOpen, setIsFurnishingOpen] = useState(false);
   const FURNISHING_OPTIONS = [
-    'Bed',
-    'Wardrobe',
-    'Table',
-    'Chair',
-    'Air Conditioner',
     'Fan',
+    'Netflix',
+    'PS4 Console',
+    'Desk lamp',
+    'Ceiling Fan',
+    'Television',
+    'Cable',
+    'WiFi',
+    'Bathroom',
+    'Shower-room',
+    'bed',
+    'Bedsheet',
+    'Treated water',
+    'Lock on bedroom door',
+    'Desk',
+    'Chair',
+    'Mirror',
+    'Vanity table',
+    'Side drawer',
+    'Hanger',
+    'Sliding door',
+    'Workspace',
+    'Sink',
+    'Balcony',
+    'Pillow',
+    'Double bed',
+    'Wardrobe',
     'TV',
     'Fridge',
-    'Microwave',
-    'Cooker',
-    'Heater',
+    'AC',
+    'DSTV'
   ];
   const locationInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -438,17 +463,62 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   // Function to handle room insertion
   const insertRoomData = async (roomData: RoomData) => {
     try {
-      const { data, error } = await supabase
-        .from('rooms')
-        .insert([roomData])
-        .select();
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          property_title: roomData.property_title,
+          location: roomData.location,
+          state: roomData.state,
+          price: roomData.price,
+          bathrooms: roomData.bathrooms,
+          bedrooms: roomData.bedrooms,
+          room_size: roomData.room_size,
+          furniture: roomData.furniture,
+          furnishing: roomData.furnishing,
+          duration: roomData.duration,
+          house_no: roomData.house_no,
+          street: roomData.street,
+          wifi_zone: roomData.wifi_zone,
+          description: roomData.description,
+          room_features: roomData.room_features,
+          building_type: roomData.building_type,
+          latitude: roomData.latitude,
+          longitude: roomData.longitude,
+          room_img_1: roomData.room_img_1,
+          room_img_2: roomData.room_img_2,
+          room_img_3: roomData.room_img_3,
+          room_img_4: roomData.room_img_4,
+          room_img_5: roomData.room_img_5,
+          profile_image: roomData.profile_image,
+          full_name: roomData.full_name,
+          gender: roomData.gender,
+          phone_number: roomData.phone_number,
+          email_address: roomData.email_address,
+          religion: roomData.religion,
+          status: roomData.status,
+          age_range: roomData.age_range,
+          pet: roomData.pet,
+          about_self: roomData.about_self,
+          dislikes: roomData.dislikes,
+          likes: roomData.likes,
+          potrait_img_1: roomData.potrait_img_1,
+          potrait_img_2: roomData.potrait_img_2,
+        }),
+      });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Response Error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
-      return data;
+      const result = await response.json();
+      return result.room;
     } catch (error) {
+      console.error('❌ Room creation failed:', error);
       throw error;
     }
   };
@@ -508,6 +578,13 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       errors.house_no = 'House number is required';
     } else if (sanitizeNumber(formData.house_no, 0, 1000000) === null) {
       errors.house_no = 'Please enter a valid house number';
+    }
+    
+    // Validate street (required)
+    if (!formData.street || !formData.street.trim()) {
+      errors.street = 'Street is required';
+    } else if (!isValidStreet(formData.street)) {
+      errors.street = 'Please enter a valid street address (2-100 characters, letters, numbers, spaces, hyphens, apostrophes, commas, and periods only)';
     }
     
     // Room size is no longer required in this step/UI
@@ -616,6 +693,13 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       errors.house_no = 'House number is required';
     }
 
+    // Validate street (required in Step 1)
+    if (!formData.street || !formData.street.trim()) {
+      errors.street = 'Street is required';
+    } else if (!isValidStreet(formData.street)) {
+      errors.street = 'Please enter a valid street address (2-100 characters, letters, numbers, spaces, hyphens, apostrophes, commas, and periods only)';
+    }
+
     if (!formData.duration.trim()) {
       errors.duration = 'Duration is required';
     }
@@ -671,6 +755,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           : [],
         duration: sanitizeText(formData.duration, 50),
         house_no: formData.house_no ? sanitizeNumber(formData.house_no, 0, 1000000) : null,
+        street: sanitizeStreet(formData.street),
         wifi_zone: formData.wifi_zone,
         description: sanitizeText(formData.description, 2000),
         room_features: sanitizeText(formData.room_features, 1000),
@@ -714,14 +799,15 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
         price: sanitizedData.price as number,
         bathrooms: sanitizedData.bathrooms as number,
         bedrooms: sanitizedData.bedrooms || 0,
-        room_size: sanitizedData.room_size,
+        room_size: sanitizedData.room_size || 10, // Default room size in sqm
         furniture: sanitizedData.furniture,
         furnishing: sanitizedData.furnishing,
         duration: sanitizedData.duration,
         house_no: sanitizedData.house_no !== null ? sanitizedData.house_no : undefined,
+        street: sanitizedData.street || undefined,
         wifi_zone: sanitizedData.wifi_zone,
         description: sanitizedData.description,
-        room_features: sanitizedData.room_features,
+        room_features: sanitizedData.room_features || 'Standard room features', // Default room features
         building_type: sanitizedData.building_type,
         latitude: sanitizedData.latitude as number,
         longitude: sanitizedData.longitude as number,
@@ -757,6 +843,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           `Title: ${roomData.property_title}`,
           `Location: ${roomData.location} (${sanitizedData.latitude}, ${sanitizedData.longitude})`,
           `State: ${roomData.state}`,
+          `Street: ${roomData.street}`,
           `Price: ${roomData.price}`,
           `Toilets: ${roomData.bathrooms}, Bedrooms: ${roomData.bedrooms}`,
           `Duration: ${roomData.duration}`,
@@ -833,6 +920,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
       furnishing: [],
       duration: '',
       house_no: '',
+      street: '',
       wifi_zone: false,
       description: '',
       room_features: '',
@@ -899,6 +987,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           break;
         case 'phone_number':
           sanitizedValue = value.replace(/[^0-9+]/g, '');
+          break;
+        case 'street':
+          sanitizedValue = sanitizeStreet(value);
           break;
         case 'about_self':
         case 'dislikes':
@@ -1328,8 +1419,39 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   </div>
                 </div>
 
+                 {/* House no. (20%) */}
+                 <div className="md:col-span-1">
+                  <input
+                    type="number"
+                    required
+                    value={formData.house_no}
+                    onChange={(e) => handleInputChange('house_no', e.target.value)}
+                    className={`w-full px-1 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
+                      validationErrors.house_no ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="No:"
+                    pattern="[0-9]+"
+                  />
+                  {validationErrors.house_no && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.house_no}</p>
+                  )}
+                </div>
+                {/* street */}
+                <div className="md:col-span-3">
+                  <input 
+                    type="text" 
+                    required
+                    value={formData.street || ''} 
+                    onChange={(e) => handleInputChange('street', e.target.value)} 
+                    placeholder="Street" 
+                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.street ? 'border-red-500' : 'border-gray-300'}`} 
+                  />
+                  {validationErrors.street && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.street}</p>
+                  )}
+                </div>
                 {/* Location (60%) */}
-                <div className="relative md:col-span-6">
+                <div className="relative md:col-span-4">
                   <input
                     ref={locationInputRef}
                     type="text"
@@ -1402,23 +1524,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   )}
                 </div>
 
-                {/* House no. (20%) */}
-                <div className="md:col-span-2">
-                  <input
-                    type="number"
-                    required
-                    value={formData.house_no}
-                    onChange={(e) => handleInputChange('house_no', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${
-                      validationErrors.house_no ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="House no."
-                    pattern="[0-9]+"
-                  />
-                  {validationErrors.house_no && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.house_no}</p>
-                  )}
-                </div>
+               
 
                 {/* Amount */}
                 <div className="md:col-span-7">

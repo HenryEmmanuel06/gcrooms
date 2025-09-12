@@ -162,3 +162,39 @@ export const generateSecureFilename = (originalName: string): string => {
   
   return `room_${timestamp}_${randomString}.${safeExtension}`;
 };
+
+// Sanitize street address input
+export const sanitizeStreet = (input: string): string => {
+  if (!input) return '';
+  
+  // Basic HTML sanitization
+  let sanitized = sanitizeHtml(input);
+  
+  // Limit length to reasonable street address length
+  if (sanitized.length > 100) {
+    sanitized = sanitized.substring(0, 100);
+  }
+  
+  // Remove null bytes and control characters (except spaces)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  
+  // Allow only letters, numbers, spaces, hyphens, apostrophes, commas, and periods
+  sanitized = sanitized.replace(/[^a-zA-Z0-9\s\-',.]/g, '');
+  
+  // Normalize whitespace (replace multiple spaces with single space)
+  sanitized = sanitized.replace(/\s+/g, ' ');
+  
+  // Trim leading/trailing whitespace
+  return sanitized.trim();
+};
+
+// Validate street address
+export const isValidStreet = (street: string): boolean => {
+  if (!street || street.trim().length === 0) return false;
+  if (street.trim().length < 2) return false;
+  if (street.trim().length > 100) return false;
+  
+  // Check for valid street characters
+  const streetRegex = /^[a-zA-Z0-9\s\-',.]+$/;
+  return streetRegex.test(street.trim());
+};
