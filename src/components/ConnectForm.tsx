@@ -203,13 +203,15 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
     setErrors({});
 
     try {
-      const response = await fetch('/api/connection-attempts/payment', {
+      // Initialize Paystack payment
+      const response = await fetch('/api/paystack/initialize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          attempt_id: attemptId,
+          connection_attempt_id: attemptId,
+          email: formData.email,
           amount: finalAmount,
         }),
       });
@@ -217,19 +219,21 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to process payment');
+        throw new Error(result.error || 'Failed to initialize payment');
       }
 
-      console.log('Payment initiated:', result);
+      console.log('Payment initialized:', result);
       
-      // Here you would normally redirect to Paystack or handle the payment flow
-      // For now, we'll just show a success message
-      alert(`Payment initiated successfully! Reference: ${result.paystack_ref}`);
+      // Redirect to Paystack checkout
+      if (result.authorization_url) {
+        window.location.href = result.authorization_url;
+      } else {
+        throw new Error('No authorization URL received from Paystack');
+      }
       
     } catch (error) {
       console.error('Payment error:', error);
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to process payment. Please try again.' });
-    } finally {
       setIsProcessingPayment(false);
     }
   };

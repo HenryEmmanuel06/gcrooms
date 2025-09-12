@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isRooms = pathname?.startsWith("/rooms");
+  // Use the same dark-on-light navbar variant for Rooms and Payment pages
+  const isRooms = pathname?.startsWith("/rooms") || pathname?.startsWith("/payment");
   return (
     <header className="w-full absolute top-0 left-0 z-50 bg-transparent">
       <div className="mx-auto w-[90%] max-w-[1200px] h-[47px] pt-[15px] flex items-center justify-between">
