@@ -1218,7 +1218,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <button
                     type="button"
                     onClick={() => { setShowSuggestions(false); if (validateStep1()) setCurrentStep(2); }}
-                    className="text-gray-800 hover:text-black text-sm flex items-center gap-1"
+                    className="text-black hover:text-[#10D1C1] text-sm flex items-center gap-1 cursor-pointer duration-300"
                     aria-label="Next"
                   >
                     Next <span aria-hidden>›</span>
@@ -1227,7 +1227,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="text-gray-800 hover:text-black text-sm flex items-center gap-1"
+                    className="text-black hover:text-[#10D1C1] text-sm flex items-center gap-1 cursor-pointer duration-300"
                     aria-label="Back"
                   >
                     ‹ Back
@@ -1406,7 +1406,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       {profileImageUrl ? (
                         <Image src={profileImageUrl} alt="Profile" fill className="object-cover" />
                       ) : (
-                        <span className="text-[10px] text-gray-500 leading-tight text-center px-2">Enter a clear photo of you</span>
+                        <span className="text-[10px] text-gray-500 leading-tight text-center px-4">Enter a clear photo of you</span>
                       )}
                       {uploadingProfile && (
                         <span className="absolute inset-0 bg-white/60 flex items-center justify-center text-xs">Uploading...</span>

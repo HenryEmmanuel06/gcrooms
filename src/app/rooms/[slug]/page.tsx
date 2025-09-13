@@ -111,11 +111,22 @@ export default function RoomPage({ params }: RoomPageProps) {
           <div className="lg:sticky lg:top-10 lg:h-fit">
             <div className="bg-white rounded-2xl">
               {images.length > 0 && (
-                <div className="relative h-[400px] rounded-lg" style={{
-                  backgroundImage: `url(${images[currentImageIndex]})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}>
+                <div className="relative h-[400px] rounded-lg overflow-hidden bg-gray-100">
+                  {/* Crossfade layers */}
+                  <div className="absolute inset-0">
+                    {images.map((img, idx) => (
+                      <Image
+                        key={idx}
+                        src={img || ''}
+                        alt={`Room ${idx + 1}`}
+                        fill
+                        className={`object-cover transition-opacity duration-700 ease-in-out ${idx === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                        priority={idx === 0}
+                      />
+                    ))}
+                  </div>
+
+                  {/* State badge */}
                   <div className="absolute top-4 right-4 bg-white/90 px-[10px] py-[8px] rounded-full flex items-center gap-[5px]">
                     <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M6 7.58337C6.9665 7.58337 7.75 6.79987 7.75 5.83337C7.75 4.86688 6.9665 4.08337 6 4.08337C5.0335 4.08337 4.25 4.86688 4.25 5.83337C4.25 6.79987 5.0335 7.58337 6 7.58337Z" stroke="#111111" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
@@ -134,7 +145,7 @@ export default function RoomPage({ params }: RoomPageProps) {
                       <button
                         key={idx}
                         onClick={() => setCurrentImageIndex(idx)}
-                        className={`relative h-20 rounded-lg overflow-hidden ${idx === currentImageIndex ? 'ring-2 ring-blue-500' : ''
+                        className={`relative h-20 rounded-lg overflow-hidden cursor-pointer ${idx === currentImageIndex ? 'ring-2 ring-[#FFBE06]' : ''
                           }`}
                       >
                         <Image
