@@ -34,6 +34,7 @@ interface RoomSuggestion {
   building_type: string;
   room_size: number;
   is_verified: string;
+  profile_image: string;
 }
 
 interface SearchSuggestion {
@@ -326,7 +327,7 @@ export default function RoomsPage() {
                 return (
                   <Link key={room.id} href={`/rooms/${generateSlug(room.property_title, room.id.toString())}`} className="block">
                     <div className="relative bg-white min-h-[391px] h-[391px] rounded-[15px] p-[15px] pb-[10px] shadow-[0px_1px_15px_0px_#0000001A] overflow-hidden cursor-pointer">
-                 
+
 
 
 
@@ -354,19 +355,25 @@ export default function RoomsPage() {
 
                           <span className="text-[12px] text-black">{room.state.trim().replace(/\b\w/g, (char) => char.toUpperCase())}</span>
                         </div>
-     {/* Image controls - replace state badge */}
-     <div className="absolute bottom-[5px] right-[5px] z-20 flex items-center gap-[5px] bg-[#FFFFFFE5] px-[5px] py-[5px] rounded-full">
-                        <button onClick={goPrev} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="15 18 9 12 15 6" />
-                          </svg>
-                        </button>
-                        <button onClick={goNext} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </button>
-                      </div>
+                        <div className="absolute bottom-[10px] left-[10px] w-[40px] h-[40px] rounded-[50%] bg-[#FFBE06]/10 flex items-center justify-center" style={{
+                        backgroundImage: `url(${room.profile_image || '/images/rooms-page-logo.svg'})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}>
+                        </div>
+                        {/* Image controls - replace state badge */}
+                        <div className="absolute bottom-[5px] right-[5px] z-20 flex items-center gap-[5px] bg-[#FFFFFFE5] px-[5px] py-[5px] rounded-full">
+                          <button onClick={goPrev} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                          </button>
+                          <button onClick={goNext} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </button>
+                        </div>
                         {/* Overlay */}
                         {/* <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-100 flex items-center justify-center">
                         <Link
@@ -428,8 +435,8 @@ export default function RoomsPage() {
                                   </svg>
                                   <span className="text-[12px]">{room.bathrooms}</span>
                                   <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
-                                  Bathrooms
-                                </span>
+                                    Bathrooms
+                                  </span>
                                 </div>
 
                                 {/* Bedrooms */}
@@ -451,8 +458,8 @@ export default function RoomsPage() {
                                   </svg>
                                   <span className="text-[12px]">{room.bedrooms}</span>
                                   <span className="overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 group-hover:translate-x-0">
-                                  Bedrooms
-                                </span>
+                                    Bedrooms
+                                  </span>
                                 </div>
                               </div>
                             </div>

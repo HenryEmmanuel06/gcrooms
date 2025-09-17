@@ -38,6 +38,8 @@ const cardsData: CardData[] = [
 ];
 
 export default function StickyCards() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const sectionRef = useRef<HTMLDivElement>(null);
 
     // Track scroll progress for overlap animations
@@ -63,7 +65,6 @@ export default function StickyCards() {
         if (index === 2) return { cardY: card3Y, cardScale: card3Scale };
         return { cardY: card1Y, cardScale: card1Scale }; // fallback
     };
-    const [isModalOpen, setIsModalOpen] = useState(false);
     return (
         <>
             <section
@@ -173,11 +174,12 @@ export default function StickyCards() {
                         );
                     })}
                 </div>
-                <ListRoomModal
+           
+            </section>
+            <ListRoomModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                 />
-            </section>
         </>
     );
 }

@@ -178,7 +178,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     'WiFi',
     'Bathroom',
     'Shower-room',
-    'bed',
+    'Bed',
     'Bedsheet',
     'Treated water',
     'Lock on bedroom door',
@@ -221,6 +221,34 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
   // Email validation state (Abstract API)
   const [emailChecking, setEmailChecking] = useState<boolean>(false);
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
+
+  // Helper: ensure mandatory Step 2 selects are filled
+  const isStep2MandatorySelectsFilled = () => {
+    return (
+      (formData.religion?.trim() || '').length > 0 &&
+      (formData.status?.trim() || '').length > 0 &&
+      (formData.age_range?.trim() || '').length > 0 &&
+      (formData.pet?.trim() || '').length > 0
+    );
+  };
+
+  // Helper: can submit checker (Step 2 gating)
+  const canSubmit = (
+    !isLoading &&
+    !!selectedLocation &&
+    !uploadingImages &&
+    uploadingPortraitIndex === null &&
+    !emailChecking &&
+    emailValid === true &&
+    isStep2MandatorySelectsFilled() &&
+    (formData.full_name?.trim() || '').length > 0 &&
+    (formData.gender || '').length > 0 &&
+    !!formData.phone_number && /^\+?[0-9]{7,15}$/.test(formData.phone_number) &&
+    (formData.about_self?.trim() || '').length > 0 &&
+    (formData.dislikes?.trim() || '').length > 0 &&
+    (formData.likes?.trim() || '').length > 0 &&
+    !!portrait1Url && !!portrait2Url
+  );
 
   // Helper function to format number with commas
   const formatNumberWithCommas = (value: string): string => {
@@ -630,6 +658,19 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     if (!formData.gender) {
       errors.gender = 'Gender is required';
     }
+    // Newly required Step 2 selects
+    if (!formData.religion || !formData.religion.trim()) {
+      errors.religion = 'Religion is required';
+    }
+    if (!formData.status || !formData.status.trim()) {
+      errors.status = 'Status is required';
+    }
+    if (!formData.age_range || !formData.age_range.trim()) {
+      errors.age_range = 'Age range is required';
+    }
+    if (!formData.pet || !formData.pet.trim()) {
+      errors.pet = 'Pet selection is required';
+    }
     if (!formData.email_address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email_address)) {
       errors.email_address = 'Valid email is required';
     }
@@ -638,6 +679,12 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
     }
     if (!formData.about_self || !formData.about_self.trim()) {
       errors.about_self = 'Please tell us about yourself';
+    }
+    if (!formData.dislikes || !formData.dislikes.trim()) {
+      errors.dislikes = 'Dislikes are required';
+    }
+    if (!formData.likes || !formData.likes.trim()) {
+      errors.likes = 'Likes are required';
     }
     // Images validation
     if (!profileImageUrl) {
@@ -1193,7 +1240,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+          className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-x-hidden"
           onClick={() => { if (!showSuccessPopup) onClose(); }}
         >
           <motion.div
@@ -1204,7 +1251,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between py-4 px-[60px] border-b border-gray-200">
+            <div className="flex items-center justify-between py-4 px-[10px] lg:px-[60px] border-b border-gray-200">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-700">Steps: {currentStep}/2</span>
                 
@@ -1238,11 +1285,11 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="px-[60px] py-[30px] space-y-6">
+            <form onSubmit={handleSubmit} className="px-[10px] py-[20px] lg:px-[60px] lg:py-[30px] space-y-6">
               {currentStep === 1 && (
-              <div className="flex gap-[50px]">
+              <div className="flex gap-[50px] lg:flex-row flex-col">
                 {/* Left: Images Upload */}
-                <div className="w-[400px]">
+                <div className="w-full lg:w-[400px]">
 
                   {/* Slot 0: Living room (room_img_1) */}
                   <div
@@ -1761,7 +1808,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     {/* Row 1: Full name 70% | Gender 30% */}
                     <div className="grid grid-cols-1 md:[grid-template-columns:70%_30%] gap-4">
                       <div>
-                        <input type="text" value={formData.full_name||''} onChange={(e)=>handleInputChange('full_name', e.target.value)} placeholder="Your full name" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.full_name? 'border-red-500':'border-gray-300'}`} />
+                        <input type="text" value={formData.full_name||''} onChange={(e)=>handleInputChange('full_name', sanitizeText(e.target.value, 100))} placeholder="Your full name" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.full_name? 'border-red-500':'border-gray-300'}`} />
                         {validationErrors.full_name && (<p className="text-red-500 text-sm mt-1">{validationErrors.full_name}</p>)}
                       </div>
                       <div>
@@ -1771,6 +1818,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                           <option value="Female">Female</option>
                           <option value="Other">Other</option>
                         </select>
+                        {validationErrors.gender && (<p className="text-red-500 text-sm mt-1">{validationErrors.gender}</p>)}
                       </div>
                     </div>
 
@@ -1798,7 +1846,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                         )}
                       </div>
                       <div>
-                        <input type="tel" value={formData.phone_number||''} onChange={(e)=>handleInputChange('phone_number', e.target.value)} placeholder="Enter phone number" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.phone_number? 'border-red-500':'border-gray-300'}`} />
+                        <input type="tel" value={formData.phone_number||''} onChange={(e)=>handleInputChange('phone_number', sanitizeText(e.target.value, 20))} placeholder="Enter phone number" className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent text-gray-500 text-[14px] ${validationErrors.phone_number? 'border-red-500':'border-gray-300'}`} />
                         {validationErrors.phone_number && (<p className="text-red-500 text-sm mt-1">{validationErrors.phone_number}</p>)}
                       </div>
                     </div>
@@ -1806,54 +1854,60 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                     {/* Row 3: Religion | Status | Age range | Pet (equal) */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
-                        <select value={formData.religion||''} onChange={(e)=>handleInputChange('religion', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                        <select value={formData.religion||''} onChange={(e)=>handleInputChange('religion', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${validationErrors.religion ? 'border-red-500' : 'border-gray-300'}`}>
                           <option value="">Religion</option>
                           <option>Christianity</option>
                           <option>Islam</option>
                           <option>Traditional</option>
                           <option>Other</option>
                         </select>
+                        {validationErrors.religion && (<p className="text-red-500 text-sm mt-1">{validationErrors.religion}</p>)}
                       </div>
                       <div>
-                        <select value={formData.status||''} onChange={(e)=>handleInputChange('status', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                        <select value={formData.status||''} onChange={(e)=>handleInputChange('status', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${validationErrors.status ? 'border-red-500' : 'border-gray-300'}`}>
                           <option value="">Status</option>
                           <option>Student</option>
                           <option>Employed</option>
                           <option>Self-employed</option>
                           <option>Unemployed</option>
                         </select>
+                        {validationErrors.status && (<p className="text-red-500 text-sm mt-1">{validationErrors.status}</p>)}
                       </div>
                       <div>
-                        <select value={formData.age_range||''} onChange={(e)=>handleInputChange('age_range', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                        <select value={formData.age_range||''} onChange={(e)=>handleInputChange('age_range', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${validationErrors.age_range ? 'border-red-500' : 'border-gray-300'}`}>
                           <option value="">Age range</option>
                           <option>18-24</option>
                           <option>25-34</option>
                           <option>35-44</option>
                           <option>45+</option>
                         </select>
+                        {validationErrors.age_range && (<p className="text-red-500 text-sm mt-1">{validationErrors.age_range}</p>)}
                       </div>
                       <div>
-                        <select value={formData.pet||''} onChange={(e)=>handleInputChange('pet', e.target.value)} className="w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] border-gray-300">
+                        <select value={formData.pet||''} onChange={(e)=>handleInputChange('pet', e.target.value)} className={`w-full px-3 py-2 border rounded-full focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-gray-500 text-[14px] ${validationErrors.pet ? 'border-red-500' : 'border-gray-300'}`}>
                           <option value="">Pet</option>
                           <option>Yes</option>
                           <option>No</option>
                         </select>
+                        {validationErrors.pet && (<p className="text-red-500 text-sm mt-1">{validationErrors.pet}</p>)}
                       </div>
                     </div>
 
                     {/* Textareas */}
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">Tell us about yourself:</label>
-                      <textarea rows={4} value={formData.about_self||''} onChange={(e)=>handleInputChange('about_self', e.target.value)} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.about_self? 'border-red-500':'border-gray-300'}`} placeholder="Write a short bio..." />
+                      <textarea rows={4} value={formData.about_self||''} onChange={(e)=>handleInputChange('about_self', sanitizeText(e.target.value, 2000))} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.about_self? 'border-red-500':'border-gray-300'}`} placeholder="Write a short bio..." />
                       {validationErrors.about_self && (<p className="text-red-500 text-sm mt-1">{validationErrors.about_self}</p>)}
                     </div>
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">My dislikes:</label>
-                      <textarea rows={3} value={formData.dislikes||''} onChange={(e)=>handleInputChange('dislikes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] border-gray-300" placeholder="Things you don't like..." />
+                      <textarea rows={3} value={formData.dislikes||''} onChange={(e)=>handleInputChange('dislikes', sanitizeText(e.target.value, 2000))} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.dislikes? 'border-red-500':'border-gray-300'}`} placeholder="Things you don't like..." />
+                      {validationErrors.dislikes && (<p className="text-red-500 text-sm mt-1">{validationErrors.dislikes}</p>)}
                     </div>
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">My likes:</label>
-                      <textarea rows={3} value={formData.likes||''} onChange={(e)=>handleInputChange('likes', e.target.value)} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] border-gray-300" placeholder="Things you like..." />
+                      <textarea rows={3} value={formData.likes||''} onChange={(e)=>handleInputChange('likes', sanitizeText(e.target.value, 2000))} className={`w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#10D1C1] focus:border-transparent placeholder-gray-500 text-black text-[14px] ${validationErrors.likes? 'border-red-500':'border-gray-300'}`} placeholder="Things you like..." />
+                      {validationErrors.likes && (<p className="text-red-500 text-sm mt-1">{validationErrors.likes}</p>)}
                     </div>
                   </div>
                 </div>
@@ -1871,15 +1925,22 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   </button>
                   <button
                     type="submit"
-                    disabled={
-                      isLoading ||
-                      !selectedLocation ||
-                      uploadingImages ||
-                      uploadingPortraitIndex !== null ||
-                      emailChecking ||
-                      emailValid !== true
-                    }
-                    className="px-6 py-2 bg-[#10D1C1] text-white rounded-lg hover:bg-[#0FB8A8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={(e) => {
+                      if (!canSubmit) {
+                        e.preventDefault();
+                        // Trigger full validation to show inline errors
+                        validateFormData();
+                        // Optionally scroll to first error field
+                        try {
+                          const firstErrorKey = Object.keys(validationErrors)[0];
+                          if (firstErrorKey) {
+                            document.querySelector('[data-error="' + firstErrorKey + '"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        } catch {}
+                      }
+                    }}
+                    aria-disabled={!canSubmit}
+                    className={`px-6 py-2 rounded-lg transition-colors ${canSubmit ? 'bg-[#10D1C1] text-white hover:bg-[#0FB8A8]' : 'bg-[#10D1C1] text-white opacity-50 cursor-not-allowed'}`}
                   >
                     {uploadingImages || uploadingPortraitIndex !== null ? 'Uploading Images...' : isLoading ? 'Listing Room...' : 'List Room'}
                   </button>

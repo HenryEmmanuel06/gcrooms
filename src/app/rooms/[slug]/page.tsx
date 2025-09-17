@@ -5,6 +5,7 @@ import Image from 'next/image';
 import MapComponent from '@/components/MapComponent';
 import ListRoomModal from '@/components/ListRoomModal';
 import ConnectForm from '@/components/ConnectForm';
+import { div } from 'framer-motion/client';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -168,13 +169,12 @@ export default function RoomPage({ params }: RoomPageProps) {
             <div className="bg-white rounded-2xl p-6 py-2 px-0">
               <div className="flex items-center gap-4 mb-4">
                 {room.profile_image && (
-                  <Image
-                    src={room.profile_image}
-                    alt="Profile"
-                    width={90}
-                    height={90}
-                    className="rounded-full w-[90px] h-[90px]"
-                  />
+               <div className="rounded-full w-[90px] h-[90px]" style={{
+                backgroundImage: `url(${room.profile_image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+               }}>
+                </div>
                 )}
                 <div className="flex-1">
                   <h1 className="text-[36px] leading-[120%] font-semibold text-black mb-2">

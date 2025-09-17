@@ -25,14 +25,19 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Payment calculation variables
+  // Compute dynamic fees based on actual room price
   const paymentFees = {
-    serviceFee: 1999,
-    verificationFee: 987,
-    contactSharing: 1499,
-    convenienceFee: 499
-  };
+    // Service fee = 5% of actual
+    serviceFee: Math.round(roomPrice * 0.05),
+    // Verification fee = 3% of actual
+    verificationFee: Math.round(roomPrice * 0.03),
+    // Contact sharing (standalone fee) = 1000 + 3% of actual
+    contactSharing: 1000 + Math.round(roomPrice * 0.03),
+    // Convenience fee = 2% of actual
+    convenienceFee: Math.round(roomPrice * 0.02)
+  } as const;
 
-  const totalFees = Object.values(paymentFees).reduce((sum, fee) => sum + fee, 0);
+  const totalFees = paymentFees.serviceFee + paymentFees.verificationFee + paymentFees.contactSharing + paymentFees.convenienceFee;
   const finalAmount = roomPrice + totalFees;
 
   const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
@@ -269,28 +274,27 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                 <span className="bg-[#10D1C159] text-black px-[25px] py-[10px] rounded-full text-[20px]">{roomDuration}</span>
               </div>
               
-              <div className="text-[14px] text-[#11111180] tracking-wide font-normal italic py-[10px]">
+              <div className="text-[14px] text-[#11111180] tracking-wide font-light italic py-[10px]">
                 We charge 10% of the room prices as charges and each of the above sub fees have a standard percentage in the 10%
               </div>
               
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between text-[18px]">
-                  <span className="text-[18px] text-[#111111]">Service fee:</span>
-                  <span className="font-medium text-black">{paymentFees.serviceFee.toLocaleString()}</span>
+                <div className="flex justify-between text-[16px]">
+                  <span className="text-[16px] text-[#333333]">Service fee:</span>
+                  <span className="font-medium text-[#333333]">5%</span>
                 </div>
-                <div className="flex justify-between text-[18px]">
-                  <span className="text-[18px] text-[#111111]">Verification fee:</span>
-                  <span className="font-medium text-black">{paymentFees.verificationFee.toLocaleString()}</span>
+                <div className="flex justify-between text-[16px]">
+                  <span className="text-[16px] text-[#333333]">Verification fee:</span>
+                  <span className="font-medium text-[#333333]">3%</span>
                 </div>
-                <div className="flex justify-between text-[18px]">
-                  <span className="text-[18px] text-[#111111]">Contact sharing:</span>
-                  <span className="font-medium text-black">{paymentFees.contactSharing.toLocaleString()}</span>
+                <div className="flex justify-between text-[16px]">
+                  <span className="text-[16px] text-[333333]">Convenience fee:</span>
+                  <span className="font-medium text-[#333333]">2%</span>
                 </div>
-                <div className="flex justify-between text-[18px]">
-                  <span className="text-[18px] text-[#111111]">Convenience fee:</span>
-                  <span className="font-medium text-black">{paymentFees.convenienceFee.toLocaleString()}</span>
+                <div className="flex justify-between text-[16px]">
+                  <span className="text-[16px] text-[333333]">Contact sharing:</span>
+                  <span className="font-medium text-[#333333]">{formatCurrency(1000)}<span className="text-[#11111180] italic font-light"> (plus 3%)</span></span>
                 </div>
-               
                 <div className="flex justify-between text-[20px] mt-[20px]">
                   <span className="text-black font-medium">Total amount:</span>
                   <span className="text-black font-extrabold">{formatCurrency(finalAmount)}</span>
