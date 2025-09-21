@@ -127,7 +127,7 @@ export default function StickyCards() {
 
             </section>
             <section className="w-[100%] max-w-[1300px] mx-auto block lg:hidden bg-[#ffff]">
-                <div className="w-[90%] max-w-[1300px] mx-auto bg-[#ffff]">
+                <div className="w-[90%] max-w-[1300px] mx-auto bg-[#ffff] mt-[20px] sm:mt-[40px] md:mt-[0px]">
                     <h2 className="text-[28px] md:text-[36px] font-bold text-black">Got A Room To List?</h2>
                     <p className="sm:text-[24px] text-[20px] md:text-[36px] text-black font-light leading-none max-w-[361px]">See how others earn on grooms</p>
                     <button

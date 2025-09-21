@@ -262,9 +262,9 @@ export default function WhyUs() {
                     placeholder="Enter your location"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="flex-1 md:px-4 md:py-2 px-2 py-1 outline-none text-gray-800 bg-transparent text-[12px] md:text-[14px]"
+                    className="flex-1 md:px-4 md:py-2 px-4 py-1 outline-none text-gray-800 bg-transparent text-[12px] md:text-[14px]"
                   />
-                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[10px] py-[5px] md:px-[20px] md:py-[10px] rounded-full transition-colors text-[11px] md:text-[14px]"
+                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[15px] py-[10px] md:px-[20px] md:py-[10px] rounded-full transition-colors text-[11px] md:text-[14px]"
                   style={{
                     boxShadow: "0px 0px 10px 0px #660ED180",
                   }}
