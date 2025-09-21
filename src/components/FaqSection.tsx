@@ -52,12 +52,12 @@ export default function FaqSection() {
       backgroundRepeat: "no-repeat",
   }}>
         {/* Section Title */}
-        <h2 className="text-[32px] md:text-[40px] font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
+        <h2 className="text-[32px] md:text-[40px] w-[90%] mx-auto font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
         Frequently Asked Questions
         </h2>
         <div className="w-[90%] max-w-[1160px] mx-auto flex lg:flex-row flex-col justify-between gap-[30px] md:gap-[70px]">
       {/* Left side image */}
-      <div className="relative rounded-[20px] overflow-hidden h-[350px] lg:h-[560px] w-full lg:w-[450px] p-[40px]" style={{
+      <div className="hidden sm:block relative rounded-[20px] overflow-hidden h-[350px] lg:h-[560px] w-full lg:w-[450px] p-[40px]" style={{
         backgroundImage: "url('/images/faq-img-1.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -84,7 +84,7 @@ export default function FaqSection() {
           >
             <button
               onClick={() => toggleFaq(i)}
-              className="flex justify-between items-center w-full px-[20px] py-[25px] pb-[20px] text-left text-[20px] text-[#000] font-medium"
+              className="flex justify-between items-center w-full px-[20px] py-[25px] pb-[20px] text-left text-[20px] text-[#000] font-medium leading-snug"
             >
               {faq.question}
             <div className="bg-[#E3CCFF2E] py-[9px] px-[9px] rounded-full cursor-pointer border-[0.5px] border-[#E3E3E3]">

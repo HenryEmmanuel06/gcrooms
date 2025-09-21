@@ -109,7 +109,7 @@ export default function ListingSection() {
               We guide our clients through every step of the buying and selling process.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-[30px] items-center justify-center lg:justify-start">
+            <div className="hidden sm:flex flex-col sm:flex-row gap-[30px] items-center justify-center lg:justify-start">
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black text-[16px] px-[30px] py-3 transition w-full md:w-auto"
@@ -134,7 +134,7 @@ export default function ListingSection() {
       </div>
 
       {/* Room Listings Section */}
-      <div className="mt-[75px] mx-auto w-[90%] max-w-[1320px]">
+      <div className="mt-[20px] sm:mt-[75px] mx-auto w-[90%] max-w-[1320px]">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="flex space-x-2">
@@ -233,7 +233,7 @@ export default function ListingSection() {
 
                         {/* Room Details - slide in on hover */}
 
-                        <div className="flex flex-col relative right-[30px] lg:right-[45px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
+                        <div className="hidden sm:flex flex-col relative right-[30px] lg:right-[45px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
                           <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[100%]">
                             <div className="flex items-center space-x-[10px] text-sm text-gray-600">
                               {/* Bathrooms */}

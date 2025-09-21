@@ -167,79 +167,79 @@ export default function WhyUs() {
         {/* Cards Container */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
           {/* Card 1: Super Fast */}
-          <div className="rounded-[15px] w-[100%] h-[350px] p-8 relative overflow-hidden border-3 border-[#fff]" style={{
+          <div className="rounded-[15px] w-[100%] md:h-[350px] h-[100%] md:p-8 md:pb-[18px] p-4 relative overflow-hidden border-3 border-[#fff]" style={{
             boxShadow: "0px 1px 25px 0px #0000001A",
             background: "linear-gradient(124.32deg, #FEFAFF 6.35%, #F7F7F7 45.28%, #F4F0F8 67.39%, #F7F1FF 85.17%, #E4CFFF 108.1%)"
           }}>
             <div className="relative z-10">
-              <h3 className="text-2xl text-black mb-4">
+              <h3 className="md:text-2xl text-[20px] text-black md:mb-4 mb-2">
                 Super <span className="font-semibold"> Fast</span>
               </h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
                 We guide our clients through every step of the buying and selling process.
               </p>
             </div>
 
             {/* Card Image */}
-            <div className="absolute bottom-[20px] right-[15px] w-[137px] rounded-[10px] overflow-hidden">
+            <div className="absolute bottom-[10px] right-[15px] md:w-[137px] w-[100px] rounded-[10px] overflow-hidden">
               <Image
                 src="/images/icons8-fast-96 1.png"
                 alt="Modern living room"
                 width={80}
                 height={80}
-                className="object-cover w-full h-full"
+                className="object-cover md:w-full md:h-full w-[100px] h-[100px]"
               />
             </div>
           </div>
 
           {/* Card 2: Very Convenient */}
-          <div className="rounded-[15px] w-[100%] h-[350px] p-8 relative overflow-hidden border-3 border-[#fff]" style={{
+          <div className="rounded-[15px] w-[100%] md:h-[350px] h-[100%] md:p-8 md:pb-[18px] p-4 relative overflow-hidden border-3 border-[#fff]" style={{
             boxShadow: "0px 1px 25px 0px #0000001A",
             background: "linear-gradient(124.32deg, #FEFAFF 6.35%, #F7F7F7 45.28%, #F4F0F8 67.39%, #F7F1FF 85.17%, #E4CFFF 108.1%)"
           }}>
             <div className="relative z-10">
-              <h3 className="text-2xl text-black mb-4">
+              <h3 className="md:text-2xl text-[20px] text-black md:mb-4 mb-2">
                 Very <span className="font-semibold"> Convenient</span>
               </h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
                 We guide our clients through every step of the buying and selling process.
               </p>
             </div>
 
             {/* Card Image */}
-            <div className="absolute bottom-[20px] right-[15px] w-[137px] rounded-[10px] overflow-hidden">
+            <div className="absolute bottom-[10px] right-[15px] md:w-[137px] w-[80px] rounded-[10px] overflow-hidden">
               <Image
                 src="/images/relax.png"
                 alt="Modern living room"
                 width={80}
                 height={80}
-                className="object-cover w-full h-full"
+                className="object-cover md:w-full md:h-full w-[100px] h-[100px]"
               />
             </div>
           </div>
 
           {/* Card 3: Totally Secured */}
-          <div className="rounded-[15px] w-[100%] h-[350px] p-8 relative overflow-hidden border-3 border-[#fff]" style={{
+          <div className="rounded-[15px] w-[100%] md:h-[350px] h-[100%] md:p-8 md:pb-[18px] p-4 relative overflow-hidden border-3 border-[#fff]" style={{
             boxShadow: "0px 1px 25px 0px #0000001A",
             background: "linear-gradient(124.32deg, #FEFAFF 6.35%, #F7F7F7 45.28%, #F4F0F8 67.39%, #F7F1FF 85.17%, #E4CFFF 108.1%)"
           }}>
             <div className="relative z-10">
-              <h3 className="text-2xl text-black mb-4">
-                Totally <span className="font-semibold"> Secured</span>
+              <h3 className="md:text-2xl text-[20px] text-black md:mb-4 mb-2">
+                Totally <span className="font-semibold">Secured</span>
               </h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
                 We guide our clients through every step of the buying and selling process.
               </p>
             </div>
 
             {/* Card Image */}
-            <div className="absolute bottom-[20px] right-[15px] w-[137px] rounded-[10px] overflow-hidden">
+            <div className="absolute bottom-[10px] right-[15px] md:w-[137px] w-[80px] rounded-[10px] overflow-hidden">
               <Image
                 src="/images/secure.png"
                 alt="Modern living room"
                 width={80}
                 height={80}
-                className="object-cover w-full h-full"
+                className="object-cover md:w-full md:h-full w-[100px] h-[100px]"
               />
             </div>
           </div>

@@ -152,7 +152,7 @@ export default function StickyCards() {
                                 }}
                                 className=" w-full bg-white shadow-lg rounded-xl flex justify-between flex-col gap-5 md:flex-row border-3 border-[#F2F2F2F7] text-black"
                             >
-                                 <div className="flex items-center w-full md:w-1/2 h-[140px] md:min-h-[250px] md:h-full " style={
+                                 <div className="flex items-center w-full md:w-1/2 h-[170px] md:min-h-[250px] md:h-full " style={
                                     {
                                         backgroundImage: `url('${card.image}')`,
                                         backgroundSize: "cover",

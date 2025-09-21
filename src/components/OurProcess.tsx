@@ -21,7 +21,7 @@ import Image from "next/image";
                 </h2>
 
                 {/* Process Steps Grid */}
-                <div className="relative grid grid-cols-1 md:grid-cols-2 gap-[20px] lg:gap-[80px] py-[30px] md:py-[60px]">
+                <div className="relative grid grid-cols-2 md:grid-cols-2 gap-[20px] lg:gap-[80px] py-[30px] md:py-[60px]">
                     <div className="w-full absolute hidden lg:block top-0 left-0">
                         <Image
                         src="/images/process-img.svg"
@@ -36,7 +36,7 @@ import Image from "next/image";
                         <div className="bg-[#E8C5FF] text-black text-lg font-medium rounded-[10px] px-4 py-2 mb-6">
                             01
                         </div>
-                        <h3 className="text-[24px] font-medium text-black mb-4">
+                        <h3 className="text-[20px] sm:text-[24px] font-medium text-black mb-4 leading-snug text-center">
                             Discover Rooms
                         </h3>
                         <div className="mt-[13px]">
@@ -55,11 +55,11 @@ import Image from "next/image";
                         <div className="bg-[#E8C5FF] text-black text-lg font-medium rounded-[10px] px-4 py-2 mb-6">
                             02
                         </div>
-                        <h3 className="text-[24px] font-medium text-black mb-4">
+                        <h3 className="text-[20px] sm:text-[24px] font-medium text-black mb-4 leading-snug text-center">
                             Select Preference
                         </h3>
-                        <div className="w-[279px] h-[90px] flex gap-0 hover:gap-[5px] transition-all duration-500 group cursor-pointer">
-                            <div className="relative flex-1 bg-[#8B5CF6] rounded-[10px] -mr-5 group-hover:mr-0 transition-all duration-500 border-2 border-[#ffffff]" 
+                        <div className="sm:w-[279px] sm:h-[90px] w-[110px] h-[60px] flex gap-0 hover:gap-[5px] sm:transition-all sm:duration-500 sm:group cursor-pointer justify-center">
+                            <div className="relative flex-1 bg-[#8B5CF6] rounded-[10px] -mr-5 sm:group-hover:mr-0 sm:transition-all sm:duration-500 border-2 border-[#ffffff]" 
                             style={{
                                 boxShadow: "0px 1px 25px 0px #00000033, 0px 0px 3px 0px #00000026",
                                 backgroundImage: "url('/images/preference-1.jpg')",
@@ -71,7 +71,7 @@ import Image from "next/image";
 
                                 </div>
                             </div>
-                            <div className="relative flex-1 bg-[#10B981] rounded-[10px] -mr-5 group-hover:mr-0 transition-all duration-500 border-2 border-[#ffffff]" 
+                            <div className="relative flex-1 bg-[#10B981] rounded-[10px] -mr-5 sm:group-hover:mr-0 sm:transition-all sm:duration-500 border-2 border-[#ffffff]" 
                             style={{
                                 boxShadow: "0px 1px 25px 0px #00000033, 0px 0px 3px 0px #00000026",
                                 backgroundImage: "url('/images/preference-2.jpg')",
@@ -83,7 +83,7 @@ import Image from "next/image";
 
                                 </div>
                             </div>
-                            <div className="relative flex-1 bg-[#F59E0B] rounded-[10px] -mr-5 group-hover:mr-0 transition-all duration-500 border-2 border-[#ffffff]" 
+                            <div className="relative flex-1 bg-[#F59E0B] rounded-[10px] -mr-5 sm:group-hover:mr-0 sm:transition-all sm:duration-500 border-2 border-[#ffffff]" 
                             style={{
                                 boxShadow: "0px 1px 25px 0px #00000033, 0px 0px 3px 0px #00000026",
                                 backgroundImage: "url('/images/preference-3.jpg')",
@@ -102,7 +102,7 @@ import Image from "next/image";
                         <div className="bg-[#E8C5FF] text-black text-lg font-medium rounded-[10px] px-4 py-2 mb-6">
                             03
                         </div>
-                        <h3 className="text-[24px] font-medium text-black mb-4">
+                        <h3 className="text-[20px] sm:text-[24px] font-medium text-black mb-4 leading-snug text-center">
                             Get Connected
                         </h3>
                         <div className="mt-[13px]">
@@ -121,7 +121,7 @@ import Image from "next/image";
                         <div className="bg-[#E8C5FF] text-black text-lg font-medium rounded-[10px] px-4 py-2 mb-6">
                             04
                         </div>
-                        <h3 className="text-[24px] font-medium text-black mb-4">
+                        <h3 className="text-[20px] sm:text-[24px] font-medium text-black mb-4 leading-snug text-center">
                             Get Comfortable
                         </h3>
                         <div className="mt-[13px]">
