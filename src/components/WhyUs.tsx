@@ -160,7 +160,7 @@ export default function WhyUs() {
     }}>
       <div className="mx-auto w-[90%] max-w-[1155px]">
         {/* Section Title */}
-        <h2 className="text-[32px] md:text-[40px] font-bold text-black text-center mb-[60px] pt-0 lg:pt-15">
+        <h2 className="sm:text-[32px] text-[28px] md:text-[40px] font-bold text-black text-center mb-[60px] pt-0 lg:pt-15">
           Why gcrooms?
         </h2>
 

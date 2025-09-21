@@ -95,7 +95,7 @@ export default function Navbar() {
         />
         
         {/* Mobile menu panel */}
-        <div className={`fixed top-0 right-0 h-full w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        <div className={`fixed top-0 right-0 h-full w-[85%] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}>
             {/* Mobile menu header */}

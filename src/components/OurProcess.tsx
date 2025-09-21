@@ -16,7 +16,7 @@ import Image from "next/image";
         }>
             <div className="mx-auto w-[90%] max-w-[1200px]">
                 {/* Section Title */}
-                <h2 className="md:text-[40px] text-[32px] font-bold text-black text-center mb-[20px] md:mb-[60px] pt-0 lg:pt-15">
+                <h2 className="md:text-[40px] sm:text-[32px] text-[28px] font-bold text-black text-center mb-[20px] md:mb-[60px] pt-0 lg:pt-15">
                     How it works
                 </h2>
 

@@ -52,7 +52,7 @@ export default function FaqSection() {
       backgroundRepeat: "no-repeat",
   }}>
         {/* Section Title */}
-        <h2 className="text-[32px] md:text-[40px] w-[90%] mx-auto font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
+        <h2 className="sm:text-[32px] text-[28px] md:text-[40px] w-[90%] mx-auto font-bold text-black text-center mb-[30px] md:mb-[80px] pt-15 leading-tight">
         Frequently Asked Questions
         </h2>
         <div className="w-[90%] max-w-[1160px] mx-auto flex lg:flex-row flex-col justify-between gap-[30px] md:gap-[70px]">
@@ -99,7 +99,7 @@ export default function FaqSection() {
 
             {/* Answer */}
             {openIndex === i && (
-              <div className="px-[20px] pb-4 text-[#000] text-[16px] animate-fadeIn">
+              <div className="px-[20px] pb-4 text-[#000] md:text-[16px] text-[14px] animate-fadeIn">
                 {faq.answer}
               </div>
             )}

@@ -98,7 +98,7 @@ export default function ListingSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
           {/* Left Side - Main Headline */}
           <div className="text-center lg:text-left">
-            <h2 className="md:text-[40px] text-[32px] lg:text-5xl font-bold text-black leading-tight">
+            <h2 className="md:text-[40px] sm:text-[32px] text-[28px] font-bold text-black leading-tight">
               Finding roommates should never be tough!
             </h2>
           </div>
