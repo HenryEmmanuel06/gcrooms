@@ -150,26 +150,28 @@ export default function StickyCards() {
                                 style={{
                                     background: "linear-gradient(124.32deg, #FEFAFF 6.35%, #F7F7F7 45.28%, #F4F0F8 67.39%, #F7F1FF 85.17%, #E4CFFF 108.1%)",
                                 }}
-                                className=" w-full bg-white shadow-lg rounded-xl p-[30px] flex justify-between flex-col gap-5 md:flex-row border-3 border-[#F2F2F2F7] text-black"
+                                className=" w-full bg-white shadow-lg rounded-xl flex justify-between flex-col gap-5 md:flex-row border-3 border-[#F2F2F2F7] text-black"
                             >
-                                <div className="flex-1 pt-[15px] max-w-[400px]">
+                                 <div className="flex items-center w-full md:w-1/2 h-[140px] md:min-h-[250px] md:h-full " style={
+                                    {
+                                        backgroundImage: `url('${card.image}')`,
+                                        backgroundSize: "cover",
+                                        backgroundPosition: "center",
+                                        borderTopLeftRadius: "10px",
+                                        borderTopRightRadius: "10px",
+                                        backgroundRepeat: "no-repeat",
+                                    }
+                                }>
+
+                                </div>
+                                <div className="flex-1 pt-[10px] max-w-[400px] p-[20px] md:p-[30px]">
                                     <h3 className="font-medium text-[20px] md:text-[24px] leading-tight">{card.title}</h3>
                                     <p className="text-[14px] md:text-[16px] mt-2 md:mt-0 font-normal">
                                         {card.description}
                                     </p>
                                 </div>
 
-                                <div className="flex items-center w-[150px] h-[120px] md:w-[212px] md:h-[180px] " style={
-                                    {
-                                        backgroundImage: `url('${card.image}')`,
-                                        backgroundSize: "cover",
-                                        backgroundPosition: "center",
-                                        borderRadius: "10px",
-                                        backgroundRepeat: "no-repeat",
-                                    }
-                                }>
-
-                                </div>
+                               
                             </div>
                         );
                     })}

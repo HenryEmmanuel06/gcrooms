@@ -164,6 +164,47 @@ export async function GET(request: NextRequest) {
       amount: transaction.amount / 100
     });
 
+    // Send room details email on successful payment
+    if (transaction.status === 'success' && updatedAttempt) {
+      try {
+        console.log('📧 Sending room details email...');
+        
+        // Call our email API endpoint with payment and user details
+        const emailResponse = await fetch(`${getBaseUrl(request)}/api/send-room-details`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            roomId: updatedAttempt.room_id,
+            userEmail: updatedAttempt.email,
+            paymentDetails: {
+              amount: transaction.amount / 100,
+              reference: transaction.reference,
+              status: transaction.status,
+              paid_at: transaction.paid_at || new Date().toISOString(),
+              gateway_response: transaction.gateway_response || 'Successful',
+              currency: transaction.currency || 'NGN'
+            },
+            userDetails: {
+              fullName: updatedAttempt.full_name,
+              email: updatedAttempt.email,
+              phoneNumber: updatedAttempt.phone_number
+            }
+          }),
+        });
+
+        if (emailResponse.ok) {
+          console.log('✅ Room details email sent successfully');
+        } else {
+          console.error('❌ Failed to send room details email:', await emailResponse.text());
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending room details email:', emailError);
+        // Don't fail the payment process if email fails
+      }
+    }
+
     // Dynamic base URL
     const baseUrl = getBaseUrl(request);
 

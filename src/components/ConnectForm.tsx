@@ -184,7 +184,6 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
       setAttemptId(result.attempt_id);
       setShowPaymentDetails(true);
       
-      console.log('Connection attempt created:', result);
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to send connection request. Please try again.' });
@@ -227,7 +226,6 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
         throw new Error(result.error || 'Failed to initialize payment');
       }
 
-      console.log('Payment initialized:', result);
       
       // Redirect to Paystack checkout
       if (result.authorization_url) {

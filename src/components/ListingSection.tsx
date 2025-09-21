@@ -145,13 +145,12 @@ export default function ListingSection() {
           </div>
         ) : rooms.length > 0 ? (
           <Swiper
-            modules={[Navigation, Pagination]}
+            modules={[Pagination]}
             spaceBetween={20}
-            navigation
             pagination={{ clickable: true }}
             breakpoints={{
               320: {
-                slidesPerView: 1,
+                slidesPerView: 1.2,
                 spaceBetween: 10,
               },
               640: {

@@ -517,7 +517,7 @@ export default function HeroSection() {
           />
         </div>
         <div className="flex flex-col items-center -mt-[20px] md:-mt-[100px] lg:-mt-[170px]">
-          <div className="text-center z-50">
+          <div className="text-center">
             
             <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-none" style={{
               letterSpacing: "2px"

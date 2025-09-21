@@ -49,3 +49,21 @@ body {
 input {
   outline: none !important;
 }
+
+/* Swiper pagination styling */
+.rooms-swiper .swiper-pagination {
+  /* bottom: -8px !important; */
+  top: 4px !important;
+  width: 100% !important;
+  left: 0 !important;
+  position: relative !important;
+}
+
+.rooms-swiper .swiper-pagination-bullet {
+  background-color: #d1d5db !important;
+  opacity: 1 !important;
+}
+
+.rooms-swiper .swiper-pagination-bullet-active {
+  background-color: #10D1C1 !important;
+}
