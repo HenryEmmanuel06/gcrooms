@@ -132,7 +132,7 @@ const Footer: FC = () => {
                                 className="flex items-center justify-center shadow-[0px_0px_10px_0px_#660ED160] bg-[#10D1C1] text-black font-medium px-8 py-3 rounded-full transition-all duration-200"
                                 onClick={() => setIsActionsOpen(false)}
                             >
-                                View available apartments
+                                View available apartment
                             </Link>
                         </div>
                     </div>
