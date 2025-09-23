@@ -524,10 +524,12 @@ export default function HeroSection() {
             }}>
               Lets help you find your dream roommate with ease!
             </h1>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+           
+          </div>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow hover:brightness-95 transition font-semibold"
+                className="border border-[#FFBE06] rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow transition font-semibold"
                 style={{
                   boxShadow: "0px 0px 10px 0px #660ED180"
                 }}
@@ -536,7 +538,7 @@ export default function HeroSection() {
               </button>
               <Link
                 href="#view-apartments"
-                className="inline-flex border border-[#FFBE06] items-center justify-center rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow hover:brightness-95 transition"
+                className="border border-[#FFBE06] rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow transition"
                 style={{
                   boxShadow: "box-shadow: 0px 0px 10px 0px #660ED180",
                 }}
@@ -544,8 +546,6 @@ export default function HeroSection() {
                 View available apartments
               </Link>
             </div>
-          </div>
-
           <div 
             className="items-center justify-center mx-auto mt-[670px] hidden lg:inline-flex"
           >

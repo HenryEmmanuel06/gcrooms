@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Pagination, Navigation } from 'swiper/modules';
 import { createClient } from '@supabase/supabase-js';
 import ListRoomModal from "./ListRoomModal";
 
@@ -11,6 +11,7 @@ import ListRoomModal from "./ListRoomModal";
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { span } from "framer-motion/client";
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -144,30 +145,49 @@ export default function ListingSection() {
             </div>
           </div>
         ) : rooms.length > 0 ? (
-          <Swiper
-            modules={[Pagination]}
-            spaceBetween={20}
-            pagination={{ clickable: true }}
-            breakpoints={{
-              320: {
-                slidesPerView: 1.2,
-                spaceBetween: 10,
-              },
-              640: {
-                slidesPerView: 2,
-                spaceBetween: 15,
-              },
-              1024: {
-                slidesPerView: 3,
-                spaceBetween: 20,
-              },
-              1280: {
-                slidesPerView: 4,
-                spaceBetween: 20,
-              },
-            }}
-            className="rooms-swiper"
-          >
+          <div className="relative">
+            {/* Custom Navigation Buttons - Top Right */}
+            <div className="hidden sm:flex absolute -top-[35px] right-0 z-10 gap-2 mb-4">
+              <button className="swiper-button-prev-custom w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+              </button>
+              <button className="swiper-button-next-custom w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+              </button>
+            </div>
+
+            <Swiper
+              modules={[Pagination, Navigation]}
+              spaceBetween={20}
+              pagination={{ clickable: true }}
+              navigation={{
+                prevEl: '.swiper-button-prev-custom',
+                nextEl: '.swiper-button-next-custom',
+              }}
+              breakpoints={{
+                320: {
+                  slidesPerView: 1.2,
+                  spaceBetween: 10,
+                },
+                640: {
+                  slidesPerView: 2,
+                  spaceBetween: 15,
+                },
+                1024: {
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+                1280: {
+                  slidesPerView: 4,
+                  spaceBetween: 20,
+                },
+              }}
+              className="rooms-swiper"
+            >
             {rooms.map((room) => (
               <SwiperSlide key={room.id}>
                 <Link href={`/rooms/${generateSlug(room.property_title, room.id)}`} className="block">
@@ -183,7 +203,7 @@ export default function ListingSection() {
                     {/* Room Image */}
                     <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
                       {room.room_img_1 ? (
-                        <div className="w-full h-60 object-cover transition-all duration-500 group-hover:h-35" style={{
+                        <div className="w-full h-60 object-cover transition-all duration-500 sm:group-hover:h-35" style={{
                           backgroundImage: `url(${room.room_img_1})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
@@ -222,18 +242,80 @@ export default function ListingSection() {
                           : room.property_title}
                       </h4>
 
-                      <div className="flex items-end h-[45px] justify-between transition-all group-hover:flex-col group-hover:items-start">
+                      <div className="flex items-end h-[45px] justify-between transition-all sm:group-hover:flex-col sm:group-hover:items-start">
                         {/* Price - moves up and expands on hover */}
                         <div className="">
-                          <div className="bg-[#FFBE06] text-[16px] text-black px-[25px] py-[10px] rounded-full font-semibold group-hover:px-[35px] group-hover:min-w-[120px] transition-all duration-500 ease-in-out">
-                            <span className="group-hover:hidden">{formatPrice(room.price)}</span>
-                            <span className="hidden group-hover:inline">₦{room.price.toLocaleString()}</span>
+                          <div className="bg-[#FFBE06] text-[16px] text-black px-[25px] py-[10px] rounded-full font-semibold sm:group-hover:px-[35px] sm:group-hover:min-w-[120px] transition-all duration-500 ease-in-out">
+                            <span className="sm:group-hover:hidden">{formatPrice(room.price)}</span>
+                            <span className="hidden sm:group-hover:inline">₦{room.price.toLocaleString()}</span>
                           </div>
                         </div>
+                        <div className="sm:hidden flex gap-2">
+                          {/* Bathrooms */}
+                          <div className="group sm:hidden flex items-center space-x-1 bg-[#F5D4FF] p-[11px] text-black rounded-[5px] transition-all duration-300">
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 15 15"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5.625 6.25V5C5.625 4.66848 5.7567 4.35054 5.99112 4.11612C6.22554 3.8817 6.54348 3.75 6.875 3.75H10.625C10.9565 3.75 11.2745 3.8817 11.5089 4.11612C11.7433 4.35054 11.875 4.66848 11.875 5V6.25M4.375 6.25H13.125"
+                                stroke="#111111"
+                                strokeWidth="1.1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M1.875 13.75V2.5C1.875 2.16848 2.0067 1.85054 2.24112 1.61612C2.47554 1.3817 2.79348 1.25 3.125 1.25H7.5C7.83152 1.25 8.14946 1.3817 8.38388 1.61612C8.6183 1.85054 8.75 2.16848 8.75 2.5V3.75M6.25 8.75H6.25625M8.75 8.75H8.75625M11.25 8.75H11.2562M5.625 11.25H5.63125M8.75 11.25H8.75625M11.875 11.25H11.8812M5 13.75H5.00625M8.75 13.75H8.75625M12.5 13.75H12.5062"
+                                stroke="#111111"
+                                strokeWidth="1.1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
 
+                            <span className="text-[12px]">{room.bathrooms}</span>
+
+                            {/* Sliding text */}
+                            <span
+                              className="overflow-hidden max-w-0 sm:group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 sm:group-hover:translate-x-0"
+                            >
+                              Bathrooms
+                            </span>
+                          </div>
+                          {/* Bedrooms */}
+                          <div className="group sm:hidden flex items-center space-x-1 bg-[#F5D4FF] p-[11px] text-black rounded-[5px] transition-all duration-300">
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 15 15"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M2.5 11.25V8.75C2.5 8.41848 2.6317 8.10054 2.86612 7.86612C3.10054 7.6317 3.41848 7.5 3.75 7.5H11.25C11.5815 7.5 11.8995 7.6317 12.1339 7.86612C12.3683 8.10054 12.5 8.41848 12.5 8.75V11.25M1.25 13.75H13.75M3.75 7.5V3.75C3.75 3.41848 3.8817 3.10054 4.11612 2.86612C4.35054 2.6317 4.66848 2.5 5 2.5H10C10.3315 2.5 10.6495 2.6317 10.8839 2.86612C11.1183 3.10054 11.25 3.41848 11.25 3.75V7.5"
+                                stroke="#111111"
+                                strokeWidth="1.1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+
+                            <span className="text-[12px]">{room.bedrooms}</span>
+
+                            {/* Sliding text */}
+                            <span
+                              className="overflow-hidden max-w-0 sm:group-hover:max-w-[100px] transition-all duration-300 ease-in-out ml-1 text-xs inline-block transform translate-x-2 sm:group-hover:translate-x-0"
+                            >
+                              Bedrooms
+                            </span>
+                          </div>
+                        </div>
                         {/* Room Details - slide in on hover */}
 
-                        <div className="hidden sm:flex flex-col relative right-[30px] lg:right-[45px] top-[85px] group-hover:right-[0px] group-hover:top-0 group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] group-hover:gap-[10px]">
+                        <div className="hidden sm:flex flex-col relative right-[30px] lg:right-[45px] top-[85px] group-hover:right-[0px] sm:group-hover:top-0 sm:group-hover:mt-[20px] items-end w-[100%] group-hover:items-end gap-[30px] sm:group-hover:gap-[10px]">
                           <div className="flex items-center justify-between group-hover:justify-end group-hover:w-[100%]">
                             <div className="flex items-center space-x-[10px] text-sm text-gray-600">
                               {/* Bathrooms */}
@@ -380,6 +462,7 @@ export default function ListingSection() {
               </SwiperSlide>
             ))}
           </Swiper>
+          </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">

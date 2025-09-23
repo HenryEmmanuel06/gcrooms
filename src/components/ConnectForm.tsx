@@ -34,7 +34,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
     // Contact sharing (standalone fee) = 1000 + 3% of actual
     contactSharing: 1000 + Math.round(roomPrice * 0.03),
     // Convenience fee = 2% of actual
-    convenienceFee: Math.round(roomPrice * 0.02)
+    convenienceFee: Math.round(roomPrice * 0.02 + 1000)
   } as const;
 
   const totalFees = paymentFees.serviceFee + paymentFees.verificationFee + paymentFees.contactSharing + paymentFees.convenienceFee;
@@ -261,39 +261,47 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
             animation: 'slideInFromRight 0.5s ease-out forwards'
           }}
         >
-          <div className="bg-white rounded-2xl p-[50px] pb-[50px] shadow-2xl w-full shadow-[0px_1px_25px_0px_#0000001A,_0px_0px_3px_0px_#00000012]">
-            <div className="mb-[35px]">
-              <h3 className="text-[24px] font-semibold text-black">Payment Details:</h3>
+          <div className="bg-white rounded-2xl p-[29px] pb-[57px] sm:pb-[50px] sm:p-[50px] shadow-2xl w-full shadow-[0px_1px_25px_0px_#0000001A,_0px_0px_3px_0px_#00000012]">
+            <div className="mb-[15px] sm:mb-[35px]">
+              <h3 className="text-[20px] sm:text-[24px] font-semibold text-black">Payment Details:</h3>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               <div className="flex items-center gap-2">
-                <span className="bg-[#FFBE06] text-black px-[25px] py-[10px] rounded-full text-[20px] font-bold">{formatCurrency(roomPrice)}</span>
-                <span className="bg-[#10D1C159] text-black px-[25px] py-[10px] rounded-full text-[20px]">{roomDuration}</span>
+                <span className="bg-[#FFBE06] text-black sm:px-[25px] px-[20px] py-[7px] sm:py-[10px] rounded-full text-[18px] sm:text-[20px] font-bold">{formatCurrency(roomPrice)}</span>
+                <span className="bg-[#10D1C159] text-black sm:px-[25px] px-[20px] py-[7px] sm:py-[10px] rounded-full text-[18px] sm:text-[20px]">{roomDuration}</span>
               </div>
               
-              <div className="text-[14px] text-[#11111180] tracking-wide font-light italic py-[10px]">
+              <div className="text-[12px] sm:text-[14px] text-[#11111180] tracking-wide font-light italic py-[10px]">
                 We charge 10% of the room prices as charges and each of the above sub fees have a standard percentage in the 10%
               </div>
               
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between text-[16px]">
-                  <span className="text-[16px] text-[#333333]">Service fee:</span>
-                  <span className="font-medium text-[#333333]">5%</span>
+                <div className="flex justify-between sm:text-[16px] text-[14px]">
+                  <span className="text-[14px] sm:text-[16px] text-[#333333]">Service fee:</span>
+                  <span className="font-medium text-[#333333]">{formatCurrency(paymentFees.serviceFee)}</span>
                 </div>
-                <div className="flex justify-between text-[16px]">
-                  <span className="text-[16px] text-[#333333]">Verification fee:</span>
-                  <span className="font-medium text-[#333333]">3%</span>
+                <div className="flex justify-between sm:text-[16px] text-[14px]">
+                  <span className="text-[14px] sm:text-[16px] text-[#333333]">Verification fee:</span>
+                  <span className="font-medium text-[#333333]">{formatCurrency(paymentFees.verificationFee)}</span>
                 </div>
-                <div className="flex justify-between text-[16px]">
-                  <span className="text-[16px] text-[333333]">Convenience fee:</span>
-                  <span className="font-medium text-[#333333]">2%</span>
+                <div className="flex justify-between sm:text-[16px] text-[14px]">
+                  <span className="text-[14px] sm:text-[16px] text-[#333333]">Convenience fee:</span>
+                  <span className="font-medium text-[#333333]">{formatCurrency(paymentFees.convenienceFee)}</span>
                 </div>
-                <div className="flex justify-between text-[16px]">
-                  <span className="text-[16px] text-[333333]">Contact sharing:</span>
-                  <span className="font-medium text-[#333333]">{formatCurrency(1000)}<span className="text-[#11111180] italic font-light"> (plus 3%)</span></span>
+                <hr className="my-2 border-[#cccc]" />
+                <div className="flex justify-between sm:text-[16px] text-[14px] mb-0">
+                  <div className='flex flex-col'>
+                    <span className="text-[14px] sm:text-[16px] text-[#00000] font-medium">Contact sharing:</span>
+                    <span className="text-[12px] sm:text-[14px] italic font-light text-[#111111A]">non-refundable:</span>
+                  </div>
+                  <div className='flex flex-col items-end'>
+                  <span className="font-medium text-[#333333]">{formatCurrency(1000)}<span className="text-[#11111180] italic font-light"> plus {formatCurrency(paymentFees.contactSharing)}</span></span>
+                  <span className="text-[#333333] font-bold">{formatCurrency(paymentFees.contactSharing + 1000)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-[20px] mt-[20px]">
+                <hr className="my-2 border-[#ccc]" />
+                <div className="flex justify-between sm:text-[20px] text-[18px] mt-[20px]">
                   <span className="text-black font-medium">Total amount:</span>
                   <span className="text-black font-extrabold">{formatCurrency(finalAmount)}</span>
                 </div>
@@ -348,13 +356,13 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
       )}
       
       <div className="bg-white rounded-2xl p-6 shadow-[0px_1px_25px_0px_#0000001A,_0px_0px_3px_0px_#00000012]">
-      <h3 className="text-[24px] font-semibold text-black tracking-wide mb-6">Get Connected Now:</h3>
+      <h3 className="text-[20px] sm:text-[24px] font-semibold text-black tracking-wide mb-6">Get Connected Now:</h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Full Name Field */}
         <div>
-          <div className="relative bg-[#F4F4F4] rounded-2xl py-[20px] px-[15px] border border-[#C3C3C3]">
-            <label className="block text-[18px] font-medium text-black mb-3">
+          <div className="relative bg-[#F4F4F4] rounded-2xl py-[15px] sm:py-[20px] px-[15px] border border-[#C3C3C3]">
+            <label className="block text-[16px] sm:text-[18px] font-medium text-black mb-3">
               My full name is:
             </label>
             <div className="relative">
@@ -370,7 +378,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="Enter your name"
-                className={`w-full pl-[25px] pr-4 text-[16px] placeholder-[#9CA3AF]`}
+                className={`w-full pl-[25px] pr-4 text-[14px] sm:text-[16px] placeholder-[#9CA3AF]`}
               />
             </div>
           </div>
@@ -383,8 +391,8 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Phone Number Field */}
           <div>
-            <div className="relative bg-[#F4F4F4] rounded-2xl py-[20px] px-[15px] border border-[#C3C3C3]">
-              <label className="block text-[18px] font-medium text-black mb-3">
+            <div className="relative bg-[#F4F4F4] rounded-2xl py-[15px] sm:py-[20px] px-[15px] border border-[#C3C3C3]">
+              <label className="block text-[16px] sm:text-[18px] font-medium text-black mb-3">
                 My phone number is:
               </label>
               <div className="relative">
@@ -399,7 +407,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
                   placeholder="Enter your phone"
-                  className={`w-full pl-[25px] pr-4 text-[16px] placeholder-[#9CA3AF]`}
+                  className={`w-full pl-[25px] pr-4 text-[14px] sm:text-[16px] placeholder-[#9CA3AF]`}
                 />
               </div>
             </div>
@@ -410,8 +418,8 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
 
           {/* Email Field */}
           <div>
-            <div className="relative bg-[#F4F4F4] rounded-2xl py-[20px] px-[15px] border border-[#C3C3C3]">
-              <label className="block text-[18px] font-medium text-black mb-3">
+            <div className="relative bg-[#F4F4F4] rounded-2xl py-[15px] sm:py-[20px] px-[15px] border border-[#C3C3C3]">
+              <label className="block text-[16px] sm:text-[18px] font-medium text-black mb-3">
                 My email address is:
               </label>
               <div className="relative">
@@ -427,7 +435,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className={`w-full pl-[25px] pr-4 text-[16px] placeholder-[#9CA3AF]`}
+                  className={`w-full pl-[25px] pr-4 text-[14px] sm:text-[16px] placeholder-[#9CA3AF]`}
                 />
                 {emailValidating && (
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

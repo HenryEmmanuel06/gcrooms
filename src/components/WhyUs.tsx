@@ -151,7 +151,7 @@ export default function WhyUs() {
     router.push(`/rooms/${slug}`);
   };
   return (
-    <section className="bg-white py-10 md:py-15 lg:py-23" style={{
+    <section id="why-us" className="bg-white py-10 md:py-15 lg:py-23" style={{
       backgroundImage: "url('images/why-us-bg.svg')",
       backgroundSize: "contain",
       backgroundPositionX: "center",

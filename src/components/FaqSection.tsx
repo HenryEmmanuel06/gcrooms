@@ -45,7 +45,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="pb-[86px]" style={{
+    <section id="faq" className="pb-[86px]" style={{
       backgroundImage: "url('/images/why-us-bg.svg')",
       backgroundSize: "contain",
       backgroundPosition: "center",

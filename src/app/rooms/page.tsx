@@ -220,7 +220,7 @@ export default function RoomsPage() {
         <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[60px] md:mt-[120px]">
           <div className="flex items-center justify-center gap-[20px] pl-[15px] pr-[15px] py-[15px] md:pl-[40px] md:pr-[20px] md:py-[20px]">
             <div className="w-[100%] flex items-center flex-col">
-              <h2 className="lg:text-[54px] md:text-[42px] lg:w-[850px] w-[100%] text-[30px] font-extrabold text-black leading-tight text-center">Browse through all rooms</h2>
+              <h2 className="lg:text-[54px] md:text-[42px] lg:w-[850px] w-[100%] text-[30px] font-extrabold text-black leading-tight text-center mt-[40px] md:mt-[0px]">Browse through all rooms</h2>
               <div className="relative lg:w-[470px] max-w-[470px] w-[100%] mt-[20px] md:mt-[40px]" ref={dropdownRef}>
                 <div className="flex items-center rounded-full bg-white border-1 border-[#fff] overflow-hidden p-1"
                   style={{
@@ -233,7 +233,7 @@ export default function RoomsPage() {
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="flex-1 md:px-4 md:py-2 px-2 py-1 outline-none text-gray-800 bg-transparent text-[12px] md:text-[14px]"
                   />
-                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[10px] py-[5px] md:px-[20px] md:py-[10px] rounded-full transition-colors text-[11px] md:text-[14px]"
+                  <button className="bg-[#10D1C1] hover:bg-[#10D1C1] border-1 border-[#07C3B3] cursor-pointer text-black px-[10px] py-[8px] md:px-[20px] md:py-[10px] rounded-full transition-colors text-[11px] md:text-[14px]"
                     style={{
                       boxShadow: "0px 0px 10px 0px #660ED180",
                     }}

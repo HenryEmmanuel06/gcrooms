@@ -6,7 +6,7 @@ import Image from "next/image";
 
    export default function OurProcess() {
     return (
-        <section className="bg-white md:py-16 md:pt-0 pt-0 py-0 bg-[url('/images/process-bg.svg')]" style={
+        <section id="process" className="bg-white md:py-16 md:pt-0 pt-0 py-0 bg-[url('/images/process-bg.svg')]" style={
             {
                 backgroundSize: "contain",
                 backgroundPositionX: "center",
