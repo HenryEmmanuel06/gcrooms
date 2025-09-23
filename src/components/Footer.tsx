@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { FC, useState } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ListRoomModal from "./ListRoomModal";
 
 const Footer: FC = () => {
     const [isActionsOpen, setIsActionsOpen] = useState(false);
     const [isListRoomModalOpen, setIsListRoomModalOpen] = useState(false);
+    const actionsRef = useRef<HTMLDivElement>(null);
 
     const handleWhatsAppClick = () => {
         // Replace with your actual WhatsApp number
@@ -18,6 +19,23 @@ const Footer: FC = () => {
         setIsActionsOpen(false);
         setIsListRoomModalOpen(true);
     };
+
+    // Close actions modal when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (actionsRef.current && !actionsRef.current.contains(event.target as Node)) {
+                setIsActionsOpen(false);
+            }
+        };
+
+        if (isActionsOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isActionsOpen]);
 
     return (
         <footer className="bg-purple-600 text-white py-10 px-0 md:px-20 pt-[70px]">
@@ -102,7 +120,7 @@ const Footer: FC = () => {
             </button>
 
             {/* Actions Button - Right */}
-            <div className="fixed bottom-6 right-[18px] sm:right-6 flex flex-col items-end gap-4 z-1000">
+            <div ref={actionsRef} className="fixed bottom-6 right-[18px] sm:right-6 flex flex-col items-end gap-4 z-1000">
                 {/* Actions Modal */}
                 <div className={`transform transition-all duration-300 ease-in-out ${isActionsOpen
                         ? 'translate-y-0 opacity-100 scale-100'
