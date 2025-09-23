@@ -69,6 +69,7 @@ export default function RoomsPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [imageIndexByRoom, setImageIndexByRoom] = useState<Record<number, number>>({});
+  const [autoCarouselIntervals, setAutoCarouselIntervals] = useState<Record<number, NodeJS.Timeout>>({});
 
   // Background images for carousel
   const backgroundImages = [
@@ -76,6 +77,66 @@ export default function RoomsPage() {
     '/images/whyus-img-2.jpg', // Add your second image
     '/images/whyus-img-3.jpg'  // Add your third image
   ];
+
+  // Auto-carousel functionality for room images
+  const startAutoCarousel = (roomId: number, images: string[]) => {
+    if (images.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setImageIndexByRoom((prev) => ({
+        ...prev,
+        [roomId]: ((prev[roomId] ?? 0) + 1) % images.length,
+      }));
+    }, 3000); // Change every 3 seconds
+
+    setAutoCarouselIntervals((prev) => ({
+      ...prev,
+      [roomId]: interval,
+    }));
+  };
+
+  const stopAutoCarousel = (roomId: number) => {
+    const interval = autoCarouselIntervals[roomId];
+    if (interval) {
+      clearInterval(interval);
+      setAutoCarouselIntervals((prev) => {
+        const newIntervals = { ...prev };
+        delete newIntervals[roomId];
+        return newIntervals;
+      });
+    }
+  };
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(autoCarouselIntervals).forEach(clearInterval);
+    };
+  }, [autoCarouselIntervals]);
+
+  // Initialize auto-carousel for all rooms with multiple images
+  useEffect(() => {
+    if (allRooms.length > 0) {
+      allRooms.forEach((room) => {
+        const images = [
+          room.room_img_1,
+          room.room_img_2,
+          room.room_img_3,
+          room.room_img_4,
+          room.room_img_5,
+        ].filter(Boolean) as string[];
+        
+        if (images.length > 1) {
+          startAutoCarousel(room.id, images);
+        }
+      });
+    }
+
+    // Cleanup when component unmounts or rooms change
+    return () => {
+      Object.values(autoCarouselIntervals).forEach(clearInterval);
+    };
+  }, [allRooms]);
   useEffect(() => {
     const startCarousel = () => {
       intervalRef.current = setInterval(() => {
@@ -308,21 +369,28 @@ export default function RoomsPage() {
                   e.preventDefault();
                   e.stopPropagation();
                   if (images.length === 0) return;
+                  stopAutoCarousel(room.id); // Stop auto-carousel when user manually navigates
                   setImageIndexByRoom((prev) => ({
                     ...prev,
                     [room.id]: (idx - 1 + images.length) % images.length,
                   }));
+                  // Restart auto-carousel after 5 seconds of inactivity
+                  setTimeout(() => startAutoCarousel(room.id, images), 5000);
                 };
 
                 const goNext = (e: ReactMouseEvent<HTMLButtonElement>) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (images.length === 0) return;
+                  stopAutoCarousel(room.id); // Stop auto-carousel when user manually navigates
                   setImageIndexByRoom((prev) => ({
                     ...prev,
                     [room.id]: (idx + 1) % images.length,
                   }));
+                  // Restart auto-carousel after 5 seconds of inactivity
+                  setTimeout(() => startAutoCarousel(room.id, images), 5000);
                 };
+
 
                 return (
                   <Link key={room.id} href={`/rooms/${generateSlug(room.property_title, room.id.toString())}`} className="block">
@@ -332,13 +400,26 @@ export default function RoomsPage() {
 
 
                       {/* Room Image */}
-                      <div className="relative transition-all duration-300 overflow-hidden rounded-lg">
+                      <div 
+                        className="relative transition-all duration-300 overflow-hidden rounded-lg"
+                        onMouseEnter={() => stopAutoCarousel(room.id)}
+                        onMouseLeave={() => images.length > 1 && startAutoCarousel(room.id, images)}
+                      >
                         {room.room_img_1 ? (
-                          <div className="w-full h-60 object-cover transition-all duration-500 group-hover:h-35" style={{
-                            backgroundImage: `url(${currentImg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}>
+                          <div className="relative w-full h-60 overflow-hidden">
+                            <div 
+                              className="w-full h-full object-cover transition-all duration-700 ease-in-out" 
+                              style={{
+                                backgroundImage: `url(${currentImg})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                filter: 'brightness(1.0)',
+                                transition: 'all 0.7s ease-in-out, filter 0.3s ease',
+                              }}
+                            >
+                              {/* Smooth overlay for better image transitions */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300"></div>
+                            </div>
                           </div>
                         ) : (
                           <div className="w-full h-60 flex items-center justify-center bg-gray-100">
@@ -361,19 +442,43 @@ export default function RoomsPage() {
                         backgroundPosition: 'center',
                       }}>
                         </div>
-                        {/* Image controls - replace state badge */}
-                        <div className="absolute bottom-[5px] right-[5px] z-20 flex items-center gap-[5px] bg-[#FFFFFFE5] px-[5px] py-[5px] rounded-full">
-                          <button onClick={goPrev} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="15 18 9 12 15 6" />
-                            </svg>
-                          </button>
-                          <button onClick={goNext} className="w-6 h-6 rounded-full bg-black/90 text-white flex items-center justify-center">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          </button>
-                        </div>
+                        {/* Image controls with enhanced animations */}
+                        {images.length > 1 && (
+                          <>
+                            <div className="absolute bottom-[15px] right-[5px] z-20 flex items-center gap-[5px] bg-white/90 backdrop-blur-sm px-[5px] py-[5px] rounded-full transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                              <button 
+                                onClick={goPrev} 
+                                className="w-7 h-7 cursor-pointer rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="15 18 9 12 15 6" />
+                                </svg>
+                              </button>
+                              <button 
+                                onClick={goNext} 
+                                className="w-7 h-7 cursor-pointer rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                              </button>
+                            </div>
+                            
+                            {/* Image indicators */}
+                            <div className="absolute bottom-[5px] left-[5px] z-20 flex items-center gap-[3px] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                              {images.map((_, index) => (
+                                <div
+                                  key={index}
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    index === idx 
+                                      ? 'bg-white shadow-lg scale-110' 
+                                      : 'bg-white/50 hover:bg-white/80'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
                         {/* Overlay */}
                         {/* <div className="absolute top-0 left-0 w-full h-full bg-[#FFBE06]/10 opacity-100 flex items-center justify-center">
                         <Link
