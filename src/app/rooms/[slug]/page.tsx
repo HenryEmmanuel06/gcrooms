@@ -246,7 +246,7 @@ export default function RoomPage({ params }: RoomPageProps) {
                   </div>
                 )}
                 {Array.isArray(room.furnishing) && room.furnishing.some(item => item.toLowerCase().includes('wifi')) && (
-                  <div className="p-3 sm:pl-[25px] rounded-lg flex items-center gap-2">
+                  <div className="p-3 md:pl-[25px] rounded-lg flex items-center gap-2">
                     <span className="text-[16px] tracking-wide flex items-center gap-[10px]"><svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M1.5 5C6 -0.000245571 12 -0.000245571 16.5 5M4.5 8C7.2 5 10.8 5 13.5 8" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M9 11.75C9.41421 11.75 9.75 11.4142 9.75 11C9.75 10.5858 9.41421 10.25 9 10.25C8.58579 10.25 8.25 10.5858 8.25 11C8.25 11.4142 8.58579 11.75 9 11.75Z" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

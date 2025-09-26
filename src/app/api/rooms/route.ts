@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
         <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #660ED1;">
           <p>Hi ${createdRoom.full_name || 'there'}!</p>
           <p>Thank you for submitting your room listing <strong>"${createdRoom.property_title}"</strong> to GCrooms.</p>
-          <p>Your room is currently under review by our team. We'll get back to you within 24-48 hours with an update.</p>
+          <p>Your room is currently under review by our team and would be published immediately once approved. You will be notified with a status update within the next 24hrs.</p>
           <div style="margin: 20px 0;">
             <h4 style="color: #333;">Your Listing Details:</h4>
             <p><strong>Title:</strong> ${createdRoom.property_title}</p>
