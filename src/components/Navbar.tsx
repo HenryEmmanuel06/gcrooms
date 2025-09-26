@@ -77,19 +77,96 @@ export default function Navbar() {
     };
   }, [lastScrollY]);
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll when mobile menu is open and prevent horizontal overflow
   useEffect(() => {
     if (isMobileMenuOpen) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      
+      // Completely disable all scrolling and hide scrollbars
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
       document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.overflowY = 'hidden';
+      document.body.style.width = '100%';
+      document.body.style.height = '100vh';
+      
+      // Also lock the html element to prevent any scrolling
+      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.overflowY = 'hidden';
+      document.documentElement.style.height = '100vh';
+      
+      // Store scroll position for restoration
+      document.body.setAttribute('data-scroll-y', scrollY.toString());
     } else {
-      document.body.style.overflow = 'unset';
+      // Restore scroll position and remove locks
+      const scrollY = document.body.getAttribute('data-scroll-y');
+      
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.body.style.overflowX = 'hidden'; // Always prevent horizontal scroll
+      document.body.style.overflowY = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      
+      // Restore html element
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overflowX = 'hidden'; // Always prevent horizontal scroll
+      document.documentElement.style.overflowY = '';
+      document.documentElement.style.height = '';
+      
+      // Restore scroll position
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY));
+        document.body.removeAttribute('data-scroll-y');
+      }
     }
     
     return () => {
-      document.body.style.overflow = 'unset';
+      // Cleanup on unmount
+      const scrollY = document.body.getAttribute('data-scroll-y');
+      
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.overflowY = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.overflowY = '';
+      document.documentElement.style.height = '';
+      
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY));
+        document.body.removeAttribute('data-scroll-y');
+      }
     };
   }, [isMobileMenuOpen]);
+
+  // Prevent horizontal scroll on mount
+  useEffect(() => {
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflowX = 'hidden';
+    
+    return () => {
+      document.body.style.overflowX = 'unset';
+      document.documentElement.style.overflowX = 'unset';
+    };
+  }, []);
   return (
+    <>
     <header className={`w-full top-0 left-0 z-1500 transition-all duration-300 ease-in-out ${
       !hasScrolled 
         ? 'absolute bg-transparent transform translate-y-0'
@@ -183,93 +260,119 @@ export default function Navbar() {
           )}
         </button>
       </div>
-
-      {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 z-40 lg:hidden ${
-        isMobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}>
-        {/* Background overlay */}
-        <div 
-          className={`fixed inset-0 bg-black/50 h-[100vh] backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-        
-        {/* Mobile menu panel */}
-        <div className={`fixed top-0 right-0 h-[100vh] w-[85%] bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}>
-            {/* Mobile menu header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                <Image src="/images/rooms-page-logo.svg" alt="gcrooms" width={100} height={28} priority />
-              </Link>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Close menu"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mobile navigation links */}
-            <nav className="flex flex-col px-6 py-8 space-y-6 flex-1">
-              <Link 
-                href="/" 
-                className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                href="/rooms" 
-                className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Rooms
-              </Link>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleSectionNavigation('faq');
-                }}
-                className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors text-left"
-              >
-                FAQs
-              </button>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleSectionNavigation('why-us');
-                }}
-                className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors text-left"
-              >
-                Why GCrooms
-              </button>
-   {/* Mobile contact button */}
-            <div className="py-6">
-              <Link
-                href="#contact-us"
-                className="block w-full text-center bg-[#10D1C1] text-[#222] font-medium px-6 py-4 rounded-full transition-colors hover:bg-[#0FB8A8]"
-                style={{
-                  boxShadow: "0px 0px 10px 0px #660ED180",
-                }}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contact us
-              </Link>
-            </div>
-            </nav>
-
-         
-          </div>
-        </div>
     </header>
+
+    {/* Mobile Menu Overlay - Outside of header for proper positioning */}
+    <div className={`fixed inset-0 z-[9999] lg:hidden overflow-hidden ${
+      isMobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
+    }`} style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: '100vh',
+      width: '100vw'
+    }}>
+      {/* Background overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '100vh',
+          width: '100vw'
+        }}
+      />
+      
+      {/* Mobile menu panel */}
+      <div className={`fixed top-0 right-0 w-[85%] max-w-[400px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col ${
+        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+      }`} style={{
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        height: '100vh',
+        maxHeight: '100vh',
+        overflowY: 'auto',
+        overflowX: 'hidden'
+      }}>
+          {/* Mobile menu header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+              <Image src="/images/rooms-page-logo.svg" alt="gcrooms" width={100} height={28} priority />
+            </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile navigation links */}
+          <nav className="flex flex-col px-6 py-8 space-y-6 flex-1">
+            <Link 
+              href="/" 
+              className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              href="/rooms" 
+              className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Rooms
+            </Link>
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleSectionNavigation('faq');
+              }}
+              className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors text-left"
+            >
+              FAQs
+            </button>
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleSectionNavigation('why-us');
+              }}
+              className="block text-xl font-medium text-gray-900 hover:text-[#10D1C1] transition-colors text-left"
+            >
+              Why GCrooms
+            </button>
+ {/* Mobile contact button */}
+          <div className="py-6">
+            <Link
+              href="#contact-us"
+              className="block w-full text-center bg-[#10D1C1] text-[#222] font-medium px-6 py-4 rounded-full transition-colors hover:bg-[#0FB8A8]"
+              style={{
+                boxShadow: "0px 0px 10px 0px #660ED180",
+              }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Contact us
+            </Link>
+          </div>
+          </nav>
+
+       
+        </div>
+      </div>
+      </>
   );
 }
 
