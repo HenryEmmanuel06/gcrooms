@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FloatingActions from "@/components/FloatingActions";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -33,13 +34,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${plusJakartaSans.variable} antialiased`}
+        className={`${plusJakartaSans.variable} antialiased overflow-x-hidden`}
       >
         <Navbar />
         <main>
           {children}
         </main>
         <Footer />
+        <FloatingActions />
       </body>
     </html>
   );

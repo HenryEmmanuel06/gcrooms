@@ -34,7 +34,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
     // Contact sharing (standalone fee) = 1000 + 3% of actual
     contactSharing: 1000 + Math.round(roomPrice * 0.03),
     // Convenience fee = 2% of actual
-    convenienceFee: Math.round(roomPrice * 0.02 + 1000)
+    convenienceFee: Math.round(roomPrice * 0.02)
   } as const;
 
   const totalFees = paymentFees.serviceFee + paymentFees.verificationFee + paymentFees.contactSharing + paymentFees.convenienceFee;
@@ -286,7 +286,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                   <span className="font-medium text-[#333333]">{formatCurrency(paymentFees.verificationFee)}</span>
                 </div>
                 <div className="flex justify-between sm:text-[16px] text-[14px]">
-                  <span className="text-[14px] sm:text-[16px] text-[#333333]">Convenience fee:</span>
+                  <span className="text-[14px] sm:text-[16px] text-[#333333]">Security fee:</span>
                   <span className="font-medium text-[#333333]">{formatCurrency(paymentFees.convenienceFee)}</span>
                 </div>
                 <hr className="my-2 border-[#cccc]" />

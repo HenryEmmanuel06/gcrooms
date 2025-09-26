@@ -251,10 +251,8 @@ export default function Navbar() {
               >
                 Why GCrooms
               </button>
-            </nav>
-
-            {/* Mobile contact button */}
-            <div className="p-6">
+   {/* Mobile contact button */}
+            <div className="py-6">
               <Link
                 href="#contact-us"
                 className="block w-full text-center bg-[#10D1C1] text-[#222] font-medium px-6 py-4 rounded-full transition-colors hover:bg-[#0FB8A8]"
@@ -266,6 +264,9 @@ export default function Navbar() {
                 Contact us
               </Link>
             </div>
+            </nav>
+
+         
           </div>
         </div>
     </header>
