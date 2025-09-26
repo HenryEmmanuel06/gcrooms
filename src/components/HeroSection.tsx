@@ -526,7 +526,9 @@ export default function HeroSection() {
             </h1>
            
           </div>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center" style={{
+            zIndex: "1000",
+          }}>
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="border border-[#FFBE06] rounded-full bg-[#FFBE06] text-black px-[50px] py-3 shadow transition font-semibold"

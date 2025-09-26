@@ -94,11 +94,7 @@ export default function Navbar() {
       document.body.style.width = '100%';
       document.body.style.height = '100vh';
       
-      // Also lock the html element to prevent any scrolling
-      document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.overflowX = 'hidden';
-      document.documentElement.style.overflowY = 'hidden';
-      document.documentElement.style.height = '100vh';
+      // Don't modify documentElement to avoid sticky positioning issues
       
       // Store scroll position for restoration
       document.body.setAttribute('data-scroll-y', scrollY.toString());
@@ -116,11 +112,7 @@ export default function Navbar() {
       document.body.style.width = '';
       document.body.style.height = '';
       
-      // Restore html element
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.overflowX = 'hidden'; // Always prevent horizontal scroll
-      document.documentElement.style.overflowY = '';
-      document.documentElement.style.height = '';
+      // Don't modify documentElement to avoid sticky positioning issues
       
       // Restore scroll position
       if (scrollY) {
@@ -143,10 +135,7 @@ export default function Navbar() {
       document.body.style.width = '';
       document.body.style.height = '';
       
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.overflowX = 'hidden';
-      document.documentElement.style.overflowY = '';
-      document.documentElement.style.height = '';
+      // Don't modify documentElement to avoid sticky positioning issues
       
       if (scrollY) {
         window.scrollTo(0, parseInt(scrollY));
@@ -155,19 +144,19 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
-  // Prevent horizontal scroll on mount
+  // Prevent horizontal scroll on mount - only set on body, not documentElement
   useEffect(() => {
+    // Only set overflowX on body, not documentElement to avoid sticky issues
+    const originalBodyOverflowX = document.body.style.overflowX;
     document.body.style.overflowX = 'hidden';
-    document.documentElement.style.overflowX = 'hidden';
     
     return () => {
-      document.body.style.overflowX = 'unset';
-      document.documentElement.style.overflowX = 'unset';
+      document.body.style.overflowX = originalBodyOverflowX || '';
     };
   }, []);
   return (
     <>
-    <header className={`w-full top-0 left-0 z-1500 transition-all duration-300 ease-in-out ${
+    <header className={`w-full top-0 left-0 z-50 transition-all duration-300 ease-in-out ${
       !hasScrolled 
         ? 'absolute bg-transparent transform translate-y-0'
         : scrollDirection === 'up' 
@@ -263,7 +252,7 @@ export default function Navbar() {
     </header>
 
     {/* Mobile Menu Overlay - Outside of header for proper positioning */}
-    <div className={`fixed inset-0 z-[9999] lg:hidden overflow-hidden ${
+    <div className={`fixed inset-0 z-[100] lg:hidden overflow-hidden ${
       isMobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
     }`} style={{
       position: 'fixed',
