@@ -73,7 +73,7 @@ export default function MapComponent({ lat, lng }: MapComponentProps) {
     <div 
       ref={mapRef} 
       className="w-full h-[300px] rounded-lg"
-      style={{ minHeight: '300px' }}
+      style={{ minHeight: '300px', zIndex: 1 }}
     />
   );
 }
