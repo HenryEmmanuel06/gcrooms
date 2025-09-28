@@ -164,7 +164,9 @@ export default function Navbar() {
         : hasScrolled
         ? 'fixed bg-white shadow-md transform -translate-y-full'
         : 'absolute bg-transparent transform translate-y-0'
-    }`}>
+    }`} style={{
+      zIndex: "1000",
+    }}>
       <div className="mx-auto w-[90%] max-w-[1200px] h-[80px] py-[15px] flex items-center justify-between">
         {/* Logo Container */}
         <div className="flex itemss-center">

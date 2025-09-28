@@ -273,7 +273,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
               </div>
               
               <div className="text-[12px] sm:text-[14px] text-[#11111180] tracking-wide font-light italic py-[10px]">
-                We charge 10% of the room prices as charges and each of the above sub fees have a standard percentage in the 10%
+              Once payment is confirmed, roommate details will be sent via mail and the host contacted. Cancellations within 46 hours get a full refund (contact-sharing sub-fee non-refundable).
               </div>
               
               <div className="space-y-3 text-sm">
@@ -296,7 +296,7 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
                     <span className="text-[12px] sm:text-[14px] italic font-light text-[#111111A]">non-refundable:</span>
                   </div>
                   <div className='flex flex-col items-end'>
-                  <span className="font-medium text-[#333333]">{formatCurrency(1000)}<span className="text-[#11111180] italic font-light"> plus {formatCurrency(paymentFees.contactSharing)}</span></span>
+                  <span className="font-medium text-[#333333]">{formatCurrency(1000)}<span className="text-[#11111180] italic font-light"> plus 2%</span></span>
                   <span className="text-[#333333] font-bold">{formatCurrency(paymentFees.contactSharing + 1000)}</span>
                   </div>
                 </div>

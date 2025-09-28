@@ -447,7 +447,7 @@ export default function RoomPage({ params }: RoomPageProps) {
       />
    
     </div>
-    <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[30px] mb-[30px] md:mt-[190px] md:mb-[70px]" style={{
+    <div className="w-[90%] max-w-[1300px] mx-auto rounded-[20px] mt-[30px] mb-[30px] md:mt-[210px] md:mb-[70px]" style={{
         background: "linear-gradient(92.93deg, #9B30DF 0.5%, rgba(102, 14, 209, 0.8) 131.44%)",
       }}>
         <div className="flex items-center gap-[20px] pl-[15px] pr-[15px] py-[15px] md:pl-[40px] md:pr-[20px] md:py-[20px]">
