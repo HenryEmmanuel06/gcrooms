@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function CancellationExpired() {
+function CancellationExpiredContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isValidating, setIsValidating] = useState(true);
@@ -96,5 +96,22 @@ export default function CancellationExpired() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CancellationExpired() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-[0px_1px_15px_0px_#0000001A] p-8 text-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#10D1C1] mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <CancellationExpiredContent />
+    </Suspense>
   );
 }
