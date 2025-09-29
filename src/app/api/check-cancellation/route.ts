@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     if (!roomId || !userEmail) {
       console.log('❌ Missing roomId or userEmail');
-      return NextResponse.redirect(new URL('/cancellation-expired', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     // Get room details
@@ -27,15 +27,15 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (roomError || !room) {
-      return NextResponse.redirect(new URL('/cancellation-expired', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     // Check for recent payments - you might need to create a payments table
     // For now, I'll create a simple check using a hypothetical payments table
     // If you don't have one, you can track payment timestamps in localStorage or session
     
-    // Try to find a payment record within the last 5 minutes (for testing)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // Try to find a payment record within the last 48 hours
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     
     // Check the connection_attempts table for recent successful payments
     let paymentValid = false;
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         .eq('email', userEmail)
         .eq('status', 'success')
         .not('paid_at', 'is', null)
-        .gte('paid_at', fiveMinutesAgo)
+        .gte('paid_at', fortyEightHoursAgo)
         .order('paid_at', { ascending: false })
         .limit(1);
 
@@ -67,25 +67,32 @@ export async function GET(request: NextRequest) {
       if (timestamp) {
         const paymentTime = new Date(parseInt(timestamp));
         const now = new Date();
-        const minutesDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60);
-        paymentValid = minutesDiff <= 5;
-        console.log('🔄 Using timestamp fallback:', { minutesDiff, paymentValid });
+        const hoursDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60 * 60);
+        paymentValid = hoursDiff <= 48;
+        console.log('🔄 Using timestamp fallback:', { hoursDiff, paymentValid });
       }
     }
 
     if (!paymentValid) {
       // Cancellation period has expired or no valid payment found
       console.log('❌ Payment not valid, redirecting to cancellation-expired');
-      return NextResponse.redirect(new URL('/cancellation-expired', request.url));
+      return NextResponse.redirect(new URL(`/cancellation-expired?roomId=${roomId}&userEmail=${encodeURIComponent(userEmail)}`, request.url));
     }
 
     console.log('✅ Payment is valid, redirecting to mailto');
 
-    // Still within 5 minutes, redirect to mailto
+    // Still within 48 hours, redirect to mailto
     const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';
     const subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
     const body = encodeURIComponent(
-      `Hello GCrooms Admin,\n\nI would like to cancel my request regarding the room: ${room.property_title}.\n\nMy payment email: ${userEmail}\n\nReason for cancellation:\n- `
+      `Hello GCrooms Admin,
+
+I would like to cancel my request regarding the room: ${room.property_title}.
+
+My payment email: ${userEmail}
+
+Reason for cancellation:
+- `
     );
     const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
 
@@ -94,6 +101,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error checking cancellation validity:', error);
-    return NextResponse.redirect(new URL('/cancellation-expired', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 }

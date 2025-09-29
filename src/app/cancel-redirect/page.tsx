@@ -8,15 +8,46 @@ function CancelRedirectContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [mailtoLink, setMailtoLink] = useState<string>('');
+  const [isValidating, setIsValidating] = useState(true);
+  const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
     const mailto = searchParams.get('mailto');
-    if (mailto) {
-      setMailtoLink(decodeURIComponent(mailto));
-      // Automatically trigger the mailto link
-      window.location.href = decodeURIComponent(mailto);
+    
+    // Protect the page - redirect to home if no mailto parameter
+    if (!mailto) {
+      router.replace('/');
+      return;
     }
-  }, [searchParams]);
+    
+    // Validate that the mailto parameter is actually a mailto link
+    const decodedMailto = decodeURIComponent(mailto);
+    if (!decodedMailto.startsWith('mailto:')) {
+      router.replace('/');
+      return;
+    }
+    
+    // Valid access - show content and trigger mailto
+    setIsValid(true);
+    setIsValidating(false);
+    setMailtoLink(decodedMailto);
+    // Automatically trigger the mailto link
+    window.location.href = decodedMailto;
+  }, [searchParams, router]);
+
+  // Show preloader while validating
+  if (isValidating || !isValid) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-[0px_1px_15px_0px_#0000001A] p-8 text-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#10D1C1] mb-4"></div>
+            <p className="text-gray-600">Validating request...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white flex items-center justify-center px-4 py-30">

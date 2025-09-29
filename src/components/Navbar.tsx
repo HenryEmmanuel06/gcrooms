@@ -15,6 +15,9 @@ export default function Navbar() {
   
   // Use the same dark-on-light navbar variant for Rooms and Payment pages
   const isRooms = pathname?.startsWith("/rooms") || pathname?.startsWith("/payment");
+  
+  // Use white links and original logo for home page
+  const isHomePage = pathname === '/';
 
   // Handle navigation to sections with smooth scrolling
   const handleSectionNavigation = (sectionId: string) => {
@@ -171,24 +174,44 @@ export default function Navbar() {
         {/* Logo Container */}
         <div className="flex itemss-center">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/images/rooms-page-logo.svg" alt="gcrooms" width={120} height={32} priority />
+            <Image src={
+              isHomePage && !hasScrolled 
+                ? "/images/logo.svg" 
+                : "/images/rooms-page-logo.svg"
+            } alt="gcrooms" width={120} height={32} priority />
           </Link>
         </div>
 
         {/* Navigation Links and Login Button Container */}
         <div className="flex items-center">
           <nav className="hidden lg:flex items-center gap-[40px] text-[16px]">
-            <Link href="/" className="text-black hover:text-black">Home</Link>
-            <Link href="/rooms" className="text-black hover:text-black">Rooms</Link>
+            <Link href="/" className={
+              isHomePage && !hasScrolled 
+                ? "text-white hover:text-white" 
+                : "text-black hover:text-black"
+            }>Home</Link>
+            <Link href="/rooms" className={
+              isHomePage && !hasScrolled 
+                ? "text-white hover:text-white" 
+                : "text-black hover:text-black"
+            }>Rooms</Link>
             <button 
               onClick={() => handleSectionNavigation('faq')} 
-              className="cursor-pointer text-black hover:text-black"
+              className={`cursor-pointer ${
+                isHomePage && !hasScrolled 
+                  ? "text-white hover:text-white" 
+                  : "text-black hover:text-black"
+              }`}
             >
               FAQs
             </button>
             <button 
               onClick={() => handleSectionNavigation('why-us')} 
-              className="cursor-pointer text-black hover:text-black"
+              className={`cursor-pointer ${
+                isHomePage && !hasScrolled 
+                  ? "text-white hover:text-white" 
+                  : "text-black hover:text-black"
+              }`}
             >
               Why GCrooms
             </button>
@@ -211,7 +234,11 @@ export default function Navbar() {
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          className="lg:hidden inline-flex items-center justify-center p-2 rounded-md transition-colors text-black hover:bg-black/5"
+          className={`lg:hidden inline-flex items-center justify-center p-2 rounded-md transition-colors ${
+            isHomePage && !hasScrolled 
+              ? "text-white hover:bg-white/10" 
+              : "text-black hover:bg-black/5"
+          }`}
         >
           {isMobileMenuOpen ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

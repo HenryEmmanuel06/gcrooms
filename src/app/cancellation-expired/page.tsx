@@ -1,6 +1,52 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function CancellationExpired() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isValidating, setIsValidating] = useState(true);
+  const [isValid, setIsValid] = useState(false);
+
+  useEffect(() => {
+    // Check if user came from the proper cancellation flow
+    // The check-cancellation API should pass some parameters when redirecting here
+    const roomId = searchParams.get('roomId');
+    const userEmail = searchParams.get('userEmail');
+    
+    // If no proper parameters, redirect to home (user accessed directly)
+    if (!roomId && !userEmail) {
+      // Check if there's a referrer from our own domain
+      const referrer = document.referrer;
+      const currentDomain = window.location.origin;
+      
+      // If no referrer or referrer is not from our domain, redirect to home
+      if (!referrer || !referrer.startsWith(currentDomain)) {
+        router.replace('/');
+        return;
+      }
+    }
+    
+    // Valid access - show content
+    setIsValid(true);
+    setIsValidating(false);
+  }, [router, searchParams]);
+
+  // Show preloader while validating
+  if (isValidating || !isValid) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-[0px_1px_15px_0px_#0000001A] p-8 text-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#10D1C1] mb-4"></div>
+            <p className="text-gray-600">Validating request...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-white flex items-center justify-center px-4 py-30">
       <div className="max-w-md w-full bg-white rounded-lg shadow-[0px_1px_15px_0px_#0000001A] p-8 text-center">
@@ -14,7 +60,7 @@ export default function CancellationExpired() {
             Cancellation Period Expired
           </h1>
           <p className="text-gray-600 mb-6">
-            The 5-minute cancellation window for this room request has expired. 
+            The 48-hour cancellation window for this room request has expired. 
             You can no longer cancel this request automatically.
           </p>
         </div>
@@ -26,7 +72,7 @@ export default function CancellationExpired() {
               If you still need to cancel or have concerns, please contact our support team directly.
             </p>
             <a
-              href="mailto:support@gcrooms.com?subject=Cancellation Request - After 5 minutes"
+              href="mailto:support@gcrooms.com?subject=Cancellation Request - After 48hrs"
               className="inline-block bg-[#10D1C1] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#0bb8aa] transition-colors"
             >
               Contact Support
@@ -45,7 +91,7 @@ export default function CancellationExpired() {
 
         <div className="mt-6 pt-4 border-t text-xs text-gray-500">
           <p>
-            Cancellation requests are only accepted within 5 minutes of payment to ensure fair treatment for all parties.
+            Cancellation requests are only accepted within 48 hours of payment to ensure fair treatment for all parties.
           </p>
         </div>
       </div>
