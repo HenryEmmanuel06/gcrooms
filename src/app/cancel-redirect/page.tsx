@@ -84,7 +84,7 @@ function CancelRedirectContent() {
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-700 mb-2">
-              <strong>Support Email:</strong> support@gcrooms.com
+              <strong>Support Email:</strong> gcroomscompany@gmail.com
             </p>
             <p className="text-xs text-gray-600">
               Please include your payment email and reason for cancellation in your message.

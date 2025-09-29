@@ -72,7 +72,7 @@ function CancellationExpiredContent() {
               If you still need to cancel or have concerns, please contact our support team directly.
             </p>
             <a
-              href="mailto:support@gcrooms.com?subject=Cancellation Request - After 48hrs"
+              href="mailto:gcroomscompany@gmail.com?subject=Cancellation Request - After 48hrs"
               className="inline-block bg-[#10D1C1] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#0bb8aa] transition-colors"
             >
               Contact Support
