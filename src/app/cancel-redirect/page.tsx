@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 
-export default function CancelRedirect() {
+function CancelRedirectContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [mailtoLink, setMailtoLink] = useState<string>('');
@@ -77,5 +77,20 @@ export default function CancelRedirect() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CancelRedirect() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <CancelRedirectContent />
+    </Suspense>
   );
 }
