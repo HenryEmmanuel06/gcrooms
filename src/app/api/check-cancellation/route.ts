@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
     // For now, I'll create a simple check using a hypothetical payments table
     // If you don't have one, you can track payment timestamps in localStorage or session
     
-    // Try to find a payment record within the last 48 hours
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    // Try to find a payment record within the last 5 minutes (for testing)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
     // First, try to check if there's a payments table
     let paymentValid = false;
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         .eq('room_id', roomId)
         .eq('email', userEmail)
         .eq('status', 'success')
-        .gte('created_at', fortyEightHoursAgo)
+        .gte('created_at', fiveMinutesAgo)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
       if (timestamp) {
         const paymentTime = new Date(parseInt(timestamp));
         const now = new Date();
-        const hoursDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60 * 60);
-        paymentValid = hoursDiff <= 48;
+        const minutesDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60);
+        paymentValid = minutesDiff <= 5;
       }
     }
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/cancellation-expired', request.url));
     }
 
-    // Still within 48 hours, redirect to mailto
+    // Still within 5 minutes, redirect to mailto
     const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';
     const subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
     const body = encodeURIComponent(
