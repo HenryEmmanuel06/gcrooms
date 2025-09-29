@@ -84,12 +84,11 @@ export async function GET(request: NextRequest) {
     // Still within 48 hours, redirect to mailto
     const adminEmail = process.env.ADMIN_EMAIL || 'gcroomscompany@gmail.com';
     const subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
-    const body = encodeURIComponent(
-      `Hello GCrooms Admin,\n\n` +
-      `I would like to cancel my request regarding the room: ${room.property_title}.\n\n` +
-      `My payment email: ${userEmail}\n\n` +
-      `Reason for cancellation:\n- `
-    );
+    const body = 
+      `Hello GCrooms Admin,%0A%0A` +
+      `I would like to cancel my request regarding the room: ${room.property_title}.%0A%0A` +
+      `My payment email: ${userEmail}%0A%0A` +
+      `Reason for cancellation:%0A- `;
     const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
 
     // Redirect to a page that will handle the mailto link
