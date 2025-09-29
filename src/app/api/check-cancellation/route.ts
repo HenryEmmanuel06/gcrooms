@@ -85,11 +85,10 @@ export async function GET(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL || 'gcroomscompany@gmail.com';
     const subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
     const body = encodeURIComponent(
-      `<p>Hello GCrooms Admin,</p>` +
-      `<p>I would like to cancel my request regarding the room: <strong>${room.property_title}</strong>.</p>` +
-      `<p>My payment email: <strong>${userEmail}</strong></p>` +
-      `<p>Reason for cancellation:</p>` +
-      `<p>- </p>`
+      `Hello GCrooms Admin,\n\n` +
+      `I would like to cancel my request regarding the room: ${room.property_title}.\n\n` +
+      `My payment email: ${userEmail}\n\n` +
+      `Reason for cancellation:\n- `
     );
     const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
 
