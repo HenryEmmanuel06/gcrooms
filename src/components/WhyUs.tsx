@@ -175,7 +175,7 @@ export default function WhyUs() {
               <h3 className="md:text-2xl text-[20px] text-black md:mb-4 mb-2">
                 Super <span className="font-semibold"> Fast</span>
               </h3>
-              <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
+              <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px] sm:w-[100%]">
                 We guide our clients through every step of the buying and selling process.
               </p>
             </div>

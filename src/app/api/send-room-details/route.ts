@@ -35,13 +35,11 @@ interface UserDetails {
   phoneNumber: string;
 }
 
-function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: string): string {
-  const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';
-  const subject = encodeURIComponent(`Cancellation Request - ${roomDetails.property_title}`);
-  const body = encodeURIComponent(
-    `Hello GCrooms Admin,\n\nI would like to cancel my request regarding the room: ${roomDetails.property_title}.\n\nMy payment email: ${userEmail}\n\nReason for cancellation:\n- `
-  );
-  const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
+function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: string, roomId: string): string {
+  // Create a link to our cancellation validation route
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gcrooms.com';
+  const currentTimestamp = Date.now();
+  const cancellationCheckUrl = `${baseUrl}/api/check-cancellation?roomId=${roomId}&userEmail=${encodeURIComponent(userEmail)}&timestamp=${currentTimestamp}`;
   return `
     <!DOCTYPE html>
     <html>
@@ -137,10 +135,10 @@ function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: strin
           </ul>
           
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${mailtoHref}" target="_blank" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600;">
+            <a href="${cancellationCheckUrl}" target="_blank" style="display: inline-block; background-color:rgba(248, 143, 143, 0.5); color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600;">
               Cancel & Contact Support
             </a>
-            <p style="margin-top: 8px; color: #888; font-size: 12px;">This opens your email app with a pre-filled message. Please state your reason for cancellation.</p>
+            <p style="margin-top: 8px; color: #888; font-size: 12px;">Available for 48 hours after payment. This will open your email app with a pre-filled message.</p>
           </div>
           
           <p>We hope you find your perfect roommate match! 🤝</p>
@@ -377,6 +375,39 @@ function generateAdminReceiptHTML(roomDetails: RoomDetails, userDetails: UserDet
   `;
 }
 
+// Helper function to save payment record
+async function savePaymentRecord(
+  roomId: string, 
+  userEmail: string, 
+  paymentDetails: PaymentDetails, 
+  userDetails: UserDetails
+) {
+  try {
+    const { error } = await supabase
+      .from('payments')
+      .insert({
+        room_id: roomId,
+        email: userEmail,
+        full_name: userDetails.fullName,
+        phone_number: userDetails.phoneNumber,
+        amount: paymentDetails.amount,
+        currency: paymentDetails.currency,
+        paystack_ref: paymentDetails.reference,
+        gateway_response: paymentDetails.gateway_response,
+        status: paymentDetails.status,
+        paid_at: paymentDetails.paid_at
+      });
+
+    if (error) {
+      console.warn('⚠️ Failed to save payment record:', error);
+    } else {
+      console.log('✅ Payment record saved successfully');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error saving payment record (table might not exist):', error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { roomId, userEmail, paymentDetails, userDetails } = await request.json();
@@ -419,7 +450,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ Room details fetched successfully');
 
     // Generate email HTML for user
-    const userEmailHTML = generateRoomDetailsEmailHTML(room as RoomDetails, userEmail);
+    const userEmailHTML = generateRoomDetailsEmailHTML(room as RoomDetails, userEmail, roomId);
 
     // Send email to user
     await sendMail({
@@ -433,6 +464,9 @@ export async function POST(request: NextRequest) {
     // Send additional emails if payment details are provided
     if (paymentDetails && userDetails) {
       console.log('📧 Sending notification emails...');
+
+      // Save payment record for cancellation tracking
+      await savePaymentRecord(roomId, userEmail, paymentDetails, userDetails);
 
       // Send notification to room owner
       const ownerEmailHTML = generateRoomOwnerNotificationHTML(
