@@ -31,7 +31,7 @@ export default function CancelRedirect() {
             Opening Email Client
           </h1>
           <p className="text-gray-600 mb-6">
-            We're opening your default email client to send a cancellation request to our support team.
+            We&apos;re opening your default email client to send a cancellation request to our support team.
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export default function CancelRedirect() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-900 mb-2">Email Not Opening?</h3>
             <p className="text-sm text-yellow-800 mb-3">
-              If your email client didn't open automatically, you can click the button below or copy the email address.
+              If your email client didn&apos;t open automatically, you can click the button below or copy the email address.
             </p>
             {mailtoLink && (
               <a
