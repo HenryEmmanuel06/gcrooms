@@ -43,36 +43,52 @@ export async function GET(request: NextRequest) {
     // Check the connection_attempts table for recent successful payments
     let paymentValid = false;
     
-    // First, try to check connection_attempts table for successful payments
-    try {
-      const { data: attempts, error: attemptError } = await supabase
-        .from('connection_attempts')
-        .select('paid_at, status, created_at')
-        .eq('room_id', roomId)
-        .eq('email', userEmail)
-        .eq('status', 'success')
-        .not('paid_at', 'is', null)
-        .gte('paid_at', fortyEightHoursAgo)
-        .order('paid_at', { ascending: false })
-        .limit(1);
-
-      if (!attemptError && attempts && attempts.length > 0) {
-        paymentValid = true;
-        console.log('✅ Found valid payment in connection_attempts:', attempts[0]);
-      } else {
-        console.log('❌ No valid payment found in connection_attempts:', { attemptError, attempts });
-      }
-    } catch (connectionError) {
-      console.log('❌ Error checking connection_attempts:', connectionError);
-      
-      // Fallback to timestamp method
+    // Handle validation differently for owner vs payer cancellations
+    if (ownerCancel === 'true') {
+      // For owner cancellations, use timestamp method since owner email != payer email
+      console.log('🏠 Owner cancellation - using timestamp validation');
       const timestamp = searchParams.get('timestamp');
       if (timestamp) {
         const paymentTime = new Date(parseInt(timestamp));
         const now = new Date();
         const hoursDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60 * 60);
         paymentValid = hoursDiff <= 48;
-        console.log('🔄 Using timestamp fallback:', { hoursDiff, paymentValid });
+        console.log('🔄 Owner timestamp validation:', { hoursDiff, paymentValid, paymentTime: paymentTime.toISOString() });
+      } else {
+        console.log('❌ No timestamp provided for owner cancellation');
+      }
+    } else {
+      // For payer cancellations, try database lookup first
+      try {
+        const { data: attempts, error: attemptError } = await supabase
+          .from('connection_attempts')
+          .select('paid_at, status, created_at')
+          .eq('room_id', roomId)
+          .eq('email', userEmail)
+          .eq('status', 'success')
+          .not('paid_at', 'is', null)
+          .gte('paid_at', fortyEightHoursAgo)
+          .order('paid_at', { ascending: false })
+          .limit(1);
+
+        if (!attemptError && attempts && attempts.length > 0) {
+          paymentValid = true;
+          console.log('✅ Found valid payment in connection_attempts:', attempts[0]);
+        } else {
+          console.log('❌ No valid payment found in connection_attempts:', { attemptError, attempts });
+        }
+      } catch (connectionError) {
+        console.log('❌ Error checking connection_attempts:', connectionError);
+        
+        // Fallback to timestamp method for payer cancellations too
+        const timestamp = searchParams.get('timestamp');
+        if (timestamp) {
+          const paymentTime = new Date(parseInt(timestamp));
+          const now = new Date();
+          const hoursDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60 * 60);
+          paymentValid = hoursDiff <= 48;
+          console.log('🔄 Payer timestamp fallback:', { hoursDiff, paymentValid });
+        }
       }
     }
 
