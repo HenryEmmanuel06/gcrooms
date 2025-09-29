@@ -36,6 +36,12 @@ interface UserDetails {
 }
 
 function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: string): string {
+  const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';
+  const subject = encodeURIComponent(`Cancellation Request - ${roomDetails.property_title}`);
+  const body = encodeURIComponent(
+    `Hello GCrooms Admin,\n\nI would like to cancel my request regarding the room: ${roomDetails.property_title}.\n\nMy email: ${userEmail}\n\nReason for cancellation:\n- `
+  );
+  const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
   return `
     <!DOCTYPE html>
     <html>
@@ -129,6 +135,13 @@ function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: strin
             <li>Schedule a viewing if you haven't already</li>
             <li>Discuss move-in arrangements and any questions you may have</li>
           </ul>
+          
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${mailtoHref}" target="_blank" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600;">
+              Cancel & Contact Support
+            </a>
+            <p style="margin-top: 8px; color: #888; font-size: 12px;">This opens your email app with a pre-filled message. Please state your reason for cancellation.</p>
+          </div>
           
           <p>We hope you find your perfect roommate match! 🤝</p>
         </div>
