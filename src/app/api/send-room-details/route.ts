@@ -37,7 +37,7 @@ interface UserDetails {
 
 function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: string, roomId: string): string {
   // Create a link to our cancellation validation route
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gcrooms.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gcrooms.vercel.app';
   const currentTimestamp = Date.now();
   const cancellationCheckUrl = `${baseUrl}/api/check-cancellation?roomId=${roomId}&userEmail=${encodeURIComponent(userEmail)}&timestamp=${currentTimestamp}`;
   return `
