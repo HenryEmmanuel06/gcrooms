@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
     const roomId = searchParams.get('roomId');
     const userEmail = searchParams.get('userEmail');
 
+    console.log('🔍 Checking cancellation for:', { roomId, userEmail });
+
     if (!roomId || !userEmail) {
+      console.log('❌ Missing roomId or userEmail');
       return NextResponse.redirect(new URL('/cancellation-expired', request.url));
     }
 
@@ -34,38 +37,49 @@ export async function GET(request: NextRequest) {
     // Try to find a payment record within the last 5 minutes (for testing)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
-    // First, try to check if there's a payments table
+    // Check the connection_attempts table for recent successful payments
     let paymentValid = false;
+    
+    // First, try to check connection_attempts table for successful payments
     try {
-      const { data: payments, error: paymentError } = await supabase
-        .from('payments')
-        .select('created_at, status')
+      const { data: attempts, error: attemptError } = await supabase
+        .from('connection_attempts')
+        .select('paid_at, status, created_at')
         .eq('room_id', roomId)
         .eq('email', userEmail)
         .eq('status', 'success')
-        .gte('created_at', fiveMinutesAgo)
-        .order('created_at', { ascending: false })
+        .not('paid_at', 'is', null)
+        .gte('paid_at', fiveMinutesAgo)
+        .order('paid_at', { ascending: false })
         .limit(1);
 
-      if (!paymentError && payments && payments.length > 0) {
+      if (!attemptError && attempts && attempts.length > 0) {
         paymentValid = true;
+        console.log('✅ Found valid payment in connection_attempts:', attempts[0]);
+      } else {
+        console.log('❌ No valid payment found in connection_attempts:', { attemptError, attempts });
       }
-    } catch (paymentTableError) {
-      // If payments table doesn't exist, we'll use a timestamp passed in the URL
-      // This is a fallback method - you should implement proper payment tracking
+    } catch (connectionError) {
+      console.log('❌ Error checking connection_attempts:', connectionError);
+      
+      // Fallback to timestamp method
       const timestamp = searchParams.get('timestamp');
       if (timestamp) {
         const paymentTime = new Date(parseInt(timestamp));
         const now = new Date();
         const minutesDiff = (now.getTime() - paymentTime.getTime()) / (1000 * 60);
         paymentValid = minutesDiff <= 5;
+        console.log('🔄 Using timestamp fallback:', { minutesDiff, paymentValid });
       }
     }
 
     if (!paymentValid) {
       // Cancellation period has expired or no valid payment found
+      console.log('❌ Payment not valid, redirecting to cancellation-expired');
       return NextResponse.redirect(new URL('/cancellation-expired', request.url));
     }
+
+    console.log('✅ Payment is valid, redirecting to mailto');
 
     // Still within 5 minutes, redirect to mailto
     const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';

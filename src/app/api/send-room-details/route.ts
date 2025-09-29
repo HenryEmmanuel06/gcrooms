@@ -465,8 +465,7 @@ export async function POST(request: NextRequest) {
     if (paymentDetails && userDetails) {
       console.log('📧 Sending notification emails...');
 
-      // Save payment record for cancellation tracking
-      await savePaymentRecord(roomId, userEmail, paymentDetails, userDetails);
+      // Note: Payment records are already saved in connection_attempts table by the paystack callback
 
       // Send notification to room owner
       const ownerEmailHTML = generateRoomOwnerNotificationHTML(
