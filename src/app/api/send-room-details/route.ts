@@ -154,7 +154,7 @@ function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: strin
   `;
 }
 
-function generateRoomOwnerNotificationHTML(roomDetails: RoomDetails, userDetails: UserDetails, paymentDetails: PaymentDetails): string {
+function generateRoomOwnerNotificationHTML(roomDetails: RoomDetails, userDetails: UserDetails, paymentDetails: PaymentDetails, roomId: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -230,6 +230,16 @@ function generateRoomOwnerNotificationHTML(roomDetails: RoomDetails, userDetails
             <li>Feel free to reach out to them using the contact details above</li>
             <li>Schedule a viewing or discuss the room details</li>
           </ul>
+
+          <div style="margin: 30px 0; padding: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
+            <h3 style="color: #856404; margin-top: 0;">⚠️ Need to Cancel This Request?</h3>
+            <p style="color: #856404; margin-bottom: 15px;">If you need to cancel this connection request for any reason, you can do so within 48 hours of this payment.</p>
+            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/check-cancellation?roomId=${roomId}&userEmail=${encodeURIComponent(roomDetails.email_address)}&ownerCancel=true&payerName=${encodeURIComponent(userDetails.fullName)}&payerEmail=${encodeURIComponent(userDetails.email)}" 
+               style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              🚫 Cancel This Request
+            </a>
+            <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">This cancellation option expires 48 hours after payment.</p>
+          </div>
           
           <p>Thank you for listing with GCrooms! 🏠</p>
         </div>
@@ -471,7 +481,8 @@ export async function POST(request: NextRequest) {
       const ownerEmailHTML = generateRoomOwnerNotificationHTML(
         room as RoomDetails, 
         userDetails, 
-        paymentDetails
+        paymentDetails,
+        roomId
       );
 
       await sendMail({

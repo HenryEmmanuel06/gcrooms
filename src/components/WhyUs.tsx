@@ -176,7 +176,7 @@ export default function WhyUs() {
                 Super <span className="font-semibold"> Fast</span>
               </h3>
               <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px] sm:w-[100%]">
-                We guide our clients through every step of the buying and selling process.
+              Instantly connect with roommates and secure rooms in no time.
               </p>
             </div>
 
@@ -202,7 +202,7 @@ export default function WhyUs() {
                 Very <span className="font-semibold"> Convenient</span>
               </h3>
               <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
-                We guide our clients through every step of the buying and selling process.
+              Enjoy full control to choose your ideal roommate or room based on your preferences, simple fast and hassle free.
               </p>
             </div>
 
@@ -228,7 +228,7 @@ export default function WhyUs() {
                 Totally <span className="font-semibold">Secured</span>
               </h3>
               <p className="text-gray-700 md:text-[16px] text-[14px] leading-snug w-[200px]">
-                We guide our clients through every step of the buying and selling process.
+              Verified profiles, safe payments and trusted connections that gives you peace of mind at every step.
               </p>
             </div>
 

@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const roomId = searchParams.get('roomId');
     const userEmail = searchParams.get('userEmail');
+    const ownerCancel = searchParams.get('ownerCancel');
+    const payerName = searchParams.get('payerName');
+    const payerEmail = searchParams.get('payerEmail');
 
-    console.log('🔍 Checking cancellation for:', { roomId, userEmail });
+    console.log('🔍 Checking cancellation for:', { roomId, userEmail, ownerCancel });
 
     if (!roomId || !userEmail) {
       console.log('❌ Missing roomId or userEmail');
@@ -83,12 +86,30 @@ export async function GET(request: NextRequest) {
 
     // Still within 48 hours, redirect to mailto
     const adminEmail = process.env.ADMIN_EMAIL || 'gcroomscompany@gmail.com';
-    const subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
-    const body = 
-      `Hello GCrooms Admin,%0A%0A` +
-      `I would like to cancel my request regarding the room: ${room.property_title}.%0A%0A` +
-      `My payment email: ${userEmail}%0A%0A` +
-      `Reason for cancellation:%0A- `;
+    
+    let subject, body;
+    
+    if (ownerCancel === 'true') {
+      // Owner cancellation email
+      subject = encodeURIComponent(`Room Owner Cancellation Request - ${room.property_title}`);
+      body = 
+        `Hello GCrooms Admin,%0A%0A` +
+        `I want to cancel the request the user that paid made for my room.%0A%0A` +
+        `Room: ${room.property_title}%0A%0A` +
+        `User that paid:%0A` +
+        `Full Name: ${payerName || 'Not provided'}%0A` +
+        `Email Address: ${payerEmail || 'Not provided'}%0A%0A` +
+        `My email (room owner): ${userEmail}%0A%0A` +
+        `Reason for my cancellation:%0A- `;
+    } else {
+      // Regular user cancellation email
+      subject = encodeURIComponent(`Cancellation Request - ${room.property_title}`);
+      body = 
+        `Hello GCrooms Admin,%0A%0A` +
+        `I would like to cancel my request regarding the room: ${room.property_title}.%0A%0A` +
+        `My payment email: ${userEmail}%0A%0A` +
+        `Reason for cancellation:%0A- `;
+    }
     const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
 
     // Redirect to a page that will handle the mailto link
