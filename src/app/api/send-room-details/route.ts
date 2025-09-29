@@ -234,7 +234,7 @@ function generateRoomOwnerNotificationHTML(roomDetails: RoomDetails, userDetails
           <div style="margin: 30px 0; padding: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
             <h3 style="color: #856404; margin-top: 0;">⚠️ Need to Cancel This Request?</h3>
             <p style="color: #856404; margin-bottom: 15px;">If you need to cancel this connection request for any reason, you can do so within 48 hours of this payment.</p>
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/check-cancellation?roomId=${roomId}&userEmail=${encodeURIComponent(roomDetails.email_address)}&ownerCancel=true&payerName=${encodeURIComponent(userDetails.fullName)}&payerEmail=${encodeURIComponent(userDetails.email)}" 
+            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://gcrooms.vercel.app'}/api/check-cancellation?roomId=${roomId}&userEmail=${encodeURIComponent(roomDetails.email_address)}&ownerCancel=true&payerName=${encodeURIComponent(userDetails.fullName)}&payerEmail=${encodeURIComponent(userDetails.email)}&timestamp=${new Date(paymentDetails.paid_at).getTime()}" 
                style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
               🚫 Cancel This Request
             </a>
