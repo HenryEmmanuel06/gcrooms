@@ -65,7 +65,7 @@ export default async function PaymentSuccessPage({ searchParams }: { searchParam
 
           <div className="space-y-3">
             <p className="text-sm text-gray-600">
-              You will receive a confirmation email shortly. The room owner will be notified of your interest.
+              You will receive a confirmation email shortly. The room owner will be notified of your interest.You can cancel within 48hrs of payment.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">

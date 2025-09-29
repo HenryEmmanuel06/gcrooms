@@ -39,7 +39,7 @@ function generateRoomDetailsEmailHTML(roomDetails: RoomDetails, userEmail: strin
   const adminEmail = process.env.ADMIN_EMAIL || 'support@gcrooms.com';
   const subject = encodeURIComponent(`Cancellation Request - ${roomDetails.property_title}`);
   const body = encodeURIComponent(
-    `Hello GCrooms Admin,\n\nI would like to cancel my request regarding the room: ${roomDetails.property_title}.\n\nMy email: ${userEmail}\n\nReason for cancellation:\n- `
+    `Hello GCrooms Admin,\n\nI would like to cancel my request regarding the room: ${roomDetails.property_title}.\n\nMy payment email: ${userEmail}\n\nReason for cancellation:\n- `
   );
   const mailtoHref = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
   return `
