@@ -13,27 +13,27 @@ const faqs: FaqItem[] = [
   {
     question: "Can I list my rooms on gcrooms?",
     answer:
-      "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process.",
+      "Yes, you can. Simply sign up as a room owner, create your listing with details and photos, and once approved, your room will be visible to potential roommates.",
   },
   {
     question: "Are gcrooms only for finding roommates?",
     answer:
-      "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. ",
+      "Not at all. In addition to helping you find compatible roommates, GCrooms also lets you discover short-stay apartments that can be booked for just a few days or weeks. More offers & features will be available soon.",
   },
   {
     question: "Do I pay before connecting with room owners?",
     answer:
-      "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. ",
+      "No. It&apos;s completely free to list your room on GCrooms However, every room is vetted before going live to ensure safety and quality. A small commission is only charged to room owners after a successful booking.",
   },
   {
     question: "Can it be refunded?",
     answer:
-      "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. ",
+      "Yes, refunds are possible (excluding the small fee for contact sharing) as long as a cancellation request is made within 2 days of booking or connecting with a client.",
   },
   {
     question: "What types of rooms are available in gcrooms?",
     answer:
-      "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. ",
+      "GCrooms offers a wide variety of options including shared rooms, spare rooms, and rooms with owners looking to pair up with compatible roommates. You&apos;ll also find single rooms, studio apartments, and co-living spaces. So there&apos;s always something to match your lifestyle and budget.",
   },
 ];
 
