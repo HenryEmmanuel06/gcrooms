@@ -1555,7 +1555,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                       {showSuggestions && (
                         <div
                           ref={suggestionsRef}
-                          className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                          className="absolute z-[100] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
                         >
                           {isLocationSearching ? (
                             <div className="flex items-center justify-center py-8">

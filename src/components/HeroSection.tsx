@@ -549,7 +549,7 @@ export default function HeroSection() {
               </Link>
             </div>
           <div 
-            className="items-center justify-center mx-auto mt-[670px] hidden lg:inline-flex"
+            className="items-center justify-center mx-auto mt-[800px] hidden lg:inline-flex"
           >
             <Image
               src="/images/hero image.png"
