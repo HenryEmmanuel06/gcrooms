@@ -10,7 +10,7 @@ export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden text-white lg:h-[770px] h-[500px]" style={{
+    <section className="relative overflow-hidden text-white h-[88vh] lg:h-[730px] sm:h-[95vh]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -509,7 +509,7 @@ export default function HeroSection() {
         />
       </div>
 
-      <div className="relative mx-auto w-[90%] max-w-[1000px] pt-24 pb-12 sm:pt-28 sm:pb-16">
+      <div className="relative mx-auto w-[90%] max-w-[1000px] h-full pt-24 sm:pt-28">
         <div className="-mt-[50px]">
           <Image src="/images/hero vector.svg" alt="" 
           width={1400}
@@ -549,14 +549,17 @@ export default function HeroSection() {
               </Link>
             </div>
           <div 
-            className="items-center justify-center mx-auto mt-[800px] hidden lg:inline-flex"
+            className="items-center justify-center mx-auto inline-flex -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px] absolute bottom-0"
           >
             <Image
               src="/images/hero image.png"
               alt="Friends on a couch"
-              fill
               className="object-contain w-[90%] max-w-[1000px]"
-              priority
+              width={1500}
+              height={1500}
+              // style={{
+              //   position: "relative",
+              // }}
             />
           </div>
         </div>
