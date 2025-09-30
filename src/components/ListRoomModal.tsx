@@ -1240,7 +1240,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-1600 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-x-hidden"
+          className="fixed inset-0 z-1600 flex items-center justify-center bg-black bg-opacity-50 overflow-x-hidden"
           onClick={() => { if (!showSuccessPopup) onClose(); }}
         >
           <motion.div
