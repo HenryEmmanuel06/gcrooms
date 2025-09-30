@@ -3,11 +3,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ListRoomModal from "./ListRoomModal";
 
 export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(0);
+
+  useEffect(() => {
+    const updateScreenWidth = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    // Set initial width
+    updateScreenWidth();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', updateScreenWidth);
+
+    return () => {
+      window.removeEventListener('resize', updateScreenWidth);
+    };
+  }, []);
 
   return (
     <section className="relative overflow-hidden text-white h-[100vh] md:h-[740px] lg:h-[760px] sm:h-[700px]" style={{
@@ -519,7 +536,7 @@ export default function HeroSection() {
         <div className="flex flex-col items-center -mt-[20px] md:-mt-[100px] lg:-mt-[170px]">
           <div className="text-center">
             
-            <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-none px-4 sm:px-0" style={{
+            <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-[35px] sm:leading-none px-[25px] sm:px-0" style={{
               letterSpacing: "2px"
             }}>
               Lets help you find your dream roommate with ease!
@@ -551,16 +568,48 @@ export default function HeroSection() {
           <div 
             className="items-center justify-center mx-auto inline-flex -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px] absolute bottom-0"
           >
-            <Image
-              src="/images/hero image.png"
-              alt="Friends on a couch"
-              className="object-contain max-w-[1000px] w-[700px] sm:w-[140%]"
-              width={1500}
-              height={1500}
-              // style={{
-              //   position: "relative",
-              // }}
-            />
+            {/* Mobile Animation (sm and below) */}
+            {screenWidth > 0 && (
+              <div className="sm:hidden flex">
+                <motion.div
+                  className="flex"
+                  animate={{
+                    x: [0, -screenWidth]
+                  }}
+                  transition={{
+                    duration: 16,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  <Image
+                    src="/images/hero image.png"
+                    alt="Friends on a couch"
+                    className="object-contain max-w-[1000px] w-[700px] flex-shrink-0"
+                    width={1500}
+                    height={1500}
+                  />
+                  <Image
+                    src="/images/hero image.png"
+                    alt="Friends on a couch"
+                    className="object-contain max-w-[1000px] w-[700px] flex-shrink-0"
+                    width={1500}
+                    height={1500}
+                  />
+                </motion.div>
+              </div>
+            )}
+            
+            {/* Desktop/Tablet Static Image (sm and above) */}
+            <div className="hidden sm:inline-flex">
+              <Image
+                src="/images/hero image.png"
+                alt="Friends on a couch"
+                className="object-contain max-w-[1000px] w-[100%]"
+                width={1500}
+                height={1500}
+              />
+            </div>
           </div>
         </div>
       </div>
