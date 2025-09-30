@@ -10,7 +10,7 @@ export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden text-white h-[600px] md:h-[780px] lg:h-[760px] sm:h-[700px]" style={{
+    <section className="relative overflow-hidden text-white h-[600px] md:h-[740px] lg:h-[760px] sm:h-[700px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
