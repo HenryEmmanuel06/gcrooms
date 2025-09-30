@@ -17,21 +17,21 @@ const cardsData: CardData[] = [
     {
         id: 1,
         title: "Splitting Rent",
-        description: "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process.",
+        description: "You never need to worry about handling the burden of your rent alone! Cut down your living costs by sharing rent with trusted roommates or guests for your spare rooms.",
         image: "/images/rent.jpg",
         alt: "Splitting Rent"
     },
     {
         id: 2,
         title: "Source of passive income",
-        description: "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process.",
+        description: "Turn your personal or spare room into a cash magnet for steady earnings. Simply list once and watch your space generate income for you, stress-free and completely secure.",
         image: "/images/income.jpg",
         alt: "Passive Income"
     },
     {
         id: 3,
         title: "Connecting with new friends",
-        description: "We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process. We guide our clients through every step of the buying and selling process.",
+        description: "Meet & connect like-minded people while sharing your space. Build lasting friendships and expand your network, right from the comfort of your room.",
         image: "/images/friends.jpg",
         alt: "New Friends"
     }
