@@ -1247,25 +1247,47 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-[1250px] max-h-[90vh] overflow-y-auto overflow-x-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-[1250px] max-h-[90vh] overflow-y-auto overflow-x-hidden relative"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => { if (!showSuccessPopup) onClose(); }}
+              className="absolute top-[3px] right-[3px] z-[100] sm:w-8 sm:h-8 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer duration-200"
+              aria-label="Close modal"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-600"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
             {/* Header */}
-            <div className="flex items-center justify-between py-4 px-[10px] lg:px-[60px] border-b border-gray-200">
+            <div className="flex items-center justify-between h-[70px] sm:h-[54px] pb-0 sm:pb-4 py-4 px-[10px] lg:px-[60px] border-b border-gray-200">
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-700">Steps: {currentStep}/2</span>
+                <span className="text-[12px] sm:text-[14px] text-gray-700">Steps: {currentStep}/2</span>
 
               </div>
-              <div className="flex items-center gap-4">
-                <div className={`w-28 h-1 rounded ${currentStep >= 1 ? 'bg-[#6F3AFF]' : 'bg-gray-200'}`}></div>
-                <div className={`w-28 h-1 rounded ${currentStep === 2 ? 'bg-[#6F3AFF]' : 'bg-[#E9D5FF]'}`}></div>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className={`w-[70px] sm:w-28 h-1 rounded ${currentStep >= 1 ? 'bg-[#6F3AFF]' : 'bg-gray-200'}`}></div>
+                <div className={`w-[70px] sm:w-28 h-1 rounded ${currentStep === 2 ? 'bg-[#6F3AFF]' : 'bg-[#E9D5FF]'}`}></div>
               </div>
               <div className="flex items-center gap-3">
                 {currentStep === 1 ? (
                   <button
                     type="button"
                     onClick={() => { setShowSuggestions(false); if (validateStep1()) setCurrentStep(2); }}
-                    className="text-black hover:text-[#10D1C1] text-sm flex items-center gap-1 cursor-pointer duration-300"
+                    className="text-black hover:text-[#10D1C1] text-[12px] sm:text-[14px] flex items-center gap-1 cursor-pointer duration-300"
                     aria-label="Next"
                   >
                     Next <span aria-hidden>›</span>
@@ -1274,7 +1296,7 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="text-black hover:text-[#10D1C1] text-sm flex items-center gap-1 cursor-pointer duration-300"
+                    className="text-black hover:text-[#10D1C1] text-[12px] sm:text-[14px] flex items-center gap-1 cursor-pointer duration-300"
                     aria-label="Back"
                   >
                     ‹ Back
@@ -1721,9 +1743,9 @@ export default function ListRoomModal({ isOpen, onClose }: ListRoomModalProps) {
               )}
 
               {currentStep === 2 && (
-                <div className="flex gap-6">
+                <div className="flex flex-col lg:flex-row gap-6">
                   {/* Left: Portrait uploads */}
-                  <div className="w-[420px] grid grid-cols-2 gap-4">
+                  <div className="w-[100%] lg:w-[420px] grid grid-cols-2 gap-4">
                     {/* Portrait 1 */}
                     <label className={`relative block h-72 bg-gray-100 rounded-xl border border-dashed border-gray-300 overflow-hidden ${uploadingPortraitIndex === 0 ? 'opacity-60' : ''}`}>
                       {!portrait1Url ? (

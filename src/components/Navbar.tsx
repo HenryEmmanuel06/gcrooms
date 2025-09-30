@@ -257,7 +257,7 @@ export default function Navbar() {
     </header>
 
     {/* Mobile Menu Overlay - Outside of header for proper positioning */}
-    <div className={`fixed inset-0 z-[100] lg:hidden overflow-hidden ${
+    <div className={`fixed inset-0 z-[1000] lg:hidden overflow-hidden ${
       isMobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
     }`} style={{
       position: 'fixed',

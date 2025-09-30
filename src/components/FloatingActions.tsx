@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FC, useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ListRoomModal from "./ListRoomModal";
 
 const FloatingActions: FC = () => {
@@ -57,13 +58,32 @@ const FloatingActions: FC = () => {
             {/* Actions Button - Right */}
             <div ref={actionsRef} className="fixed bottom-6 right-6 flex flex-col items-end gap-4 z-[1000]">
                 {/* Actions Modal - Full Screen on Mobile */}
-                <div className={`${isActionsOpen ? 'block' : 'hidden'}`}>
-                    
-                    {/* Modal Content */}
-                    <div className={`fixed left-0 right-0 bottom-0 z-[1500] md:static md:inset-auto bg-white/95 backdrop-blur-[15px] shadow-[0px_1px_25px_0px_#0000001A,0px_0px_3px_0px_#00000012] rounded-t-[30px] md:rounded-[20px] mx-auto w-[95%] md:w-[390px] px-[20px] py-[50px] md:px-[60px] md:py-[50px] md:pr-[30px] transform transition-all duration-300 ease-in-out ${isActionsOpen
-                        ? 'translate-y-0 opacity-100 scale-100'
-                        : 'translate-y-full opacity-0 scale-95'
-                    }`}>
+                <AnimatePresence>
+                    {isActionsOpen && (
+                        <motion.div
+                            initial={{ 
+                                y: "100%", 
+                                opacity: 0, 
+                                scale: 0.95 
+                            }}
+                            animate={{ 
+                                y: 0, 
+                                opacity: 1, 
+                                scale: 1 
+                            }}
+                            exit={{ 
+                                y: "100%", 
+                                opacity: 0, 
+                                scale: 0.95 
+                            }}
+                            transition={{
+                                type: "spring",
+                                damping: 25,
+                                stiffness: 300,
+                                duration: 0.3
+                            }}
+                            className="fixed left-0 right-0 bottom-0 z-[1500] md:static md:inset-auto bg-white/95 backdrop-blur-[15px] shadow-[0px_1px_25px_0px_#0000001A,0px_0px_3px_0px_#00000012] rounded-t-[30px] md:rounded-[20px] mx-auto w-[95%] md:w-[390px] px-[20px] py-[50px] md:px-[60px] md:py-[50px] md:pr-[30px]"
+                        >
                         {/* Close Button */}
                         <button
                             onClick={() => setIsActionsOpen(false)}
@@ -90,8 +110,9 @@ const FloatingActions: FC = () => {
                                 View available apartment
                             </Link>
                         </div>
-                    </div>
-                </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Actions Button */}
                 <button
