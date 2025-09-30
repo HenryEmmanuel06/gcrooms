@@ -10,7 +10,7 @@ export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden text-white h-[600px] md:h-[740px] lg:h-[760px] sm:h-[700px]" style={{
+    <section className="relative overflow-hidden text-white h-[100vh] md:h-[740px] lg:h-[760px] sm:h-[700px]" style={{
       backgroundImage: "url(/images/hero-bg.png)",
       backgroundSize: "cover",
       backgroundPosition: "center",
@@ -519,7 +519,7 @@ export default function HeroSection() {
         <div className="flex flex-col items-center -mt-[20px] md:-mt-[100px] lg:-mt-[170px]">
           <div className="text-center">
             
-            <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-none" style={{
+            <h1 className="max-w-[840px] w-[100%] lg:text-[54px] text-[32px] md:text-[40px] font-extrabold leading-none px-4 sm:px-0" style={{
               letterSpacing: "2px"
             }}>
               Lets help you find your dream roommate with ease!
@@ -554,7 +554,7 @@ export default function HeroSection() {
             <Image
               src="/images/hero image.png"
               alt="Friends on a couch"
-              className="object-contain max-w-[1000px] w-[130%] sm:w-[100%]"
+              className="object-contain max-w-[1000px] w-[700px] sm:w-[140%]"
               width={1500}
               height={1500}
               // style={{
