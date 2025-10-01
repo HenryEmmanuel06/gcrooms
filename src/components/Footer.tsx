@@ -58,7 +58,7 @@ const Footer: FC = () => {
                     <div>
                         <h3 className="font-semibold mb-3 text-[#fff]">More Links</h3>
                         <ul className="space-y-2 text-sm text-[#fff]">
-                            <li><a href="/rooms">Rooms</a></li>
+                            <li><Link href="/rooms">Rooms</Link></li>
                             <li>
                                 <button 
                                     onClick={() => handleSectionClick('faqs')}
@@ -92,8 +92,8 @@ const Footer: FC = () => {
                     <div>
                         <h3 className="font-semibold mb-3 text-[#fff]">Get In Touch</h3>
                         <ul className="space-y-2 text-sm text-[#fff]">
-                            <li><a href="tel: +2348123456789">+234 812 3456 789</a></li>
-                            <li><a href="mailto:support@gcrooms.com">support@gcrooms.com</a></li>
+                            <li><Link href="tel:+2348123456789">+234 812 3456 789</Link></li>
+                            <li><Link href="mailto:support@gcrooms.com">support@gcrooms.com</Link></li>
                         </ul>
                     </div>
                 </div>
