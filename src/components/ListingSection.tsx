@@ -94,7 +94,7 @@ export default function ListingSection() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
-    <section className="bg-white md:pt-[70px] pt-[30px]">
+    <section className="bg-white md:pt-[70px] pt-[30px]" id="listing-section">
       <div className="mx-auto w-[90%] max-w-[1165px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
           {/* Left Side - Main Headline */}

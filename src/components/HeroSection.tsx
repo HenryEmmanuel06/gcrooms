@@ -570,29 +570,45 @@ export default function HeroSection() {
           >
             {/* Mobile Animation (sm and below) */}
             {screenWidth > 0 && (
-              <div className="sm:hidden flex">
+              <div className="sm:hidden overflow-hidden w-full">
                 <motion.div
                   className="flex"
                   animate={{
-                    x: [0, -screenWidth]
+                    x: [0, -700]
                   }}
                   transition={{
-                    duration: 16,
+                    duration: 21,
                     repeat: Infinity,
-                    ease: "linear"
+                    ease: "linear",
+                    repeatType: "loop"
                   }}
+                  style={{ width: `${700 * 4}px` }}
                 >
                   <Image
                     src="/images/hero image.png"
                     alt="Friends on a couch"
-                    className="object-contain max-w-[1000px] w-[700px] flex-shrink-0"
+                    className="object-contain w-[700px] flex-shrink-0"
                     width={1500}
                     height={1500}
                   />
                   <Image
                     src="/images/hero image.png"
                     alt="Friends on a couch"
-                    className="object-contain max-w-[1000px] w-[700px] flex-shrink-0"
+                    className="object-contain w-[700px] flex-shrink-0"
+                    width={1500}
+                    height={1500}
+                  />
+                  <Image
+                    src="/images/hero image.png"
+                    alt="Friends on a couch"
+                    className="object-contain w-[700px] flex-shrink-0"
+                    width={1500}
+                    height={1500}
+                  />
+                  <Image
+                    src="/images/hero image.png"
+                    alt="Friends on a couch"
+                    className="object-contain w-[700px] flex-shrink-0"
                     width={1500}
                     height={1500}
                   />

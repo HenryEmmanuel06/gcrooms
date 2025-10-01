@@ -3,8 +3,27 @@
 import Link from "next/link";
 import { FC } from "react";
 import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 
 const Footer: FC = () => {
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const handleSectionClick = (sectionId: string) => {
+        if (pathname === '/') {
+            // If on homepage, smooth scroll to section
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        } else {
+            // If not on homepage, navigate to homepage with hash
+            router.push(`/#${sectionId}`);
+        }
+    };
 
     return (
         <footer className="bg-purple-600 text-white py-10 px-0 md:px-20 pt-[70px]">
@@ -12,9 +31,9 @@ const Footer: FC = () => {
                 {/* Logo + Description */}
                 <div>
                     <div className="flex items-center gap-2 text-2xl font-bold">
-                        <Image src="/images/footer-logo.svg" alt="Logo" width={250} height={90} />
+                        <Image src="/images/footer-logo.svg" alt="Logo" width={250} height={90} className="w-[150px] md:w-[250px]" />
                     </div>
-                    <p className="mt-3 text-sm text-[#fff] max-w-xs">
+                    <p className="mt-3 text-sm text-[#fff] max-w-[200px] sm:max-w-xs">
                         We guide our clients through every step of the buying and selling process.
                     </p>
                     {/* Social Icons */}
@@ -39,9 +58,23 @@ const Footer: FC = () => {
                     <div>
                         <h3 className="font-semibold mb-3 text-[#fff]">More Links</h3>
                         <ul className="space-y-2 text-sm text-[#fff]">
-                            <li><a href="#">List Your Rooms</a></li>
-                            <li><a href="#">View All Apartments</a></li>
-                            <li><a href="#">View All Apartments</a></li>
+                            <li><a href="/rooms">Rooms</a></li>
+                            <li>
+                                <button 
+                                    onClick={() => handleSectionClick('faqs')}
+                                    className="hover:text-gray-300 transition-colors cursor-pointer"
+                                >
+                                    FAQs
+                                </button>
+                            </li>
+                            <li>
+                                <button 
+                                    onClick={() => handleSectionClick('listing-section')}
+                                    className="hover:text-gray-300 transition-colors cursor-pointer"
+                                >
+                                    How To Earn
+                                </button>
+                            </li>
                         </ul>
                     </div>
 
@@ -49,9 +82,9 @@ const Footer: FC = () => {
                     <div>
                         <h3 className="font-semibold mb-3 text-[#fff]">Why gcrooms</h3>
                         <ul className="space-y-2 text-sm text-[#fff]">
-                            <li><a href="#">List Your Rooms</a></li>
-                            <li><a href="#">View All Apartments</a></li>
-                            <li><a href="#">View All Apartments</a></li>
+                            <li>Fast</li>
+                            <li>Convinient</li>
+                            <li>Secured</li>
                         </ul>
                     </div>
 
@@ -59,8 +92,8 @@ const Footer: FC = () => {
                     <div>
                         <h3 className="font-semibold mb-3 text-[#fff]">Get In Touch</h3>
                         <ul className="space-y-2 text-sm text-[#fff]">
-                            <li>+234 812 3456 789</li>
-                            <li>support@gcrooms.com</li>
+                            <li><a href="tel: +2348123456789">+234 812 3456 789</a></li>
+                            <li><a href="mailto:support@gcrooms.com">support@gcrooms.com</a></li>
                         </ul>
                     </div>
                 </div>
