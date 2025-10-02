@@ -566,7 +566,7 @@ export default function HeroSection() {
               </Link>
             </div>
           <div 
-            className="items-center relative justify-center mx-auto inline-flex h-full"
+            className="items-center justify-center mx-auto inline-flex h-full"
           >
             {/* Mobile Animation (sm and below) */}
             {screenWidth > 0 && (
