@@ -556,7 +556,7 @@ export default function HeroSection() {
                 List your room
               </button>
               <Link
-                href="#view-apartments"
+                href="/rooms"
                 className="border border-[#FFBE06] rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow transition"
                 style={{
                   boxShadow: "box-shadow: 0px 0px 10px 0px #660ED180",
@@ -566,7 +566,7 @@ export default function HeroSection() {
               </Link>
             </div>
           <div 
-            className="absolute items-center justify-center mx-auto inline-flex -bottom-[10%]"
+            className="absolute items-center justify-center mx-auto inline-flex  -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px]"
           >
             {/* Mobile Animation (sm and below) */}
             {screenWidth > 0 && (
