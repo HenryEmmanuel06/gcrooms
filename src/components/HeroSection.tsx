@@ -570,9 +570,9 @@ export default function HeroSection() {
           >
             {/* Mobile Animation (sm and below) */}
             {screenWidth > 0 && (
-              <div className="sm:hidden overflow-hidden w-full">
+              <div className="sm:hidden overflow-hidden w-full flex items-end">
                 <motion.div
-                  className="flex"
+                  className="flex items-end"
                   animate={{
                     x: [0, -700]
                   }}
