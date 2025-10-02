@@ -1,10 +1,16 @@
 import { NextRequest } from 'next/server';
 
+interface EmailDeliverability {
+  status?: string; // "deliverable", "undeliverable", "risky", "unknown"
+  status_detail?: string;
+  is_format_valid?: boolean;
+  is_smtp_valid?: boolean;
+  is_mx_valid?: boolean;
+}
+
 interface AbstractApiResponse {
-  deliverability?: string;
-  is_valid_format?: {
-    value?: boolean;
-  };
+  email_address?: string;
+  email_deliverability?: EmailDeliverability;
 }
 
 export async function GET(req: NextRequest) {
@@ -28,8 +34,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const url = `https://emailvalidation.abstractapi.com/v1/?api_key=${encodeURIComponent(apiKey)}&email=${encodeURIComponent(email)}`;
+    const url = `https://emailreputation.abstractapi.com/v1/?api_key=${encodeURIComponent(apiKey)}&email=${encodeURIComponent(email)}`;
     const res = await fetch(url, { cache: 'no-store' });
+
     if (!res.ok) {
       return new Response(
         JSON.stringify({ valid: false, reason: `upstream_${res.status}` }),
@@ -38,14 +45,22 @@ export async function GET(req: NextRequest) {
     }
 
     const data: AbstractApiResponse = await res.json();
-    const deliverable = (data && data.deliverability) === 'DELIVERABLE';
-    const formatOk = data?.is_valid_format?.value === true;
-    const valid = Boolean(deliverable && formatOk);
+    console.log("EmailReputation API Response:", data);
+
+    const status = data?.email_deliverability?.status || 'unknown';
+    const formatOk = data?.email_deliverability?.is_format_valid === true;
+
+    // ✅ valid if format is ok AND status is not "undeliverable"
+    const valid = Boolean(formatOk && status !== 'undeliverable');
 
     return new Response(
-      JSON.stringify({ valid, reason: valid ? 'ok' : 'not_deliverable' }),
+      JSON.stringify({
+        valid,
+        reason: valid ? 'ok' : status
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
+
   } catch (err) {
     console.error('validate-email route error:', err);
     return new Response(

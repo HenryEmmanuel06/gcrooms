@@ -113,11 +113,19 @@ export default function ConnectForm({ roomId, roomPrice = 50000, roomDuration = 
   const validateEmail = async (email: string): Promise<boolean> => {
     try {
       setEmailValidating(true);
+      
       const response = await fetch(`/api/validate-email?email=${encodeURIComponent(email)}`);
+      
       const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('❌ Client: API request failed:', response.status, data);
+        return false;
+      }
+      
       return data.valid;
     } catch (error) {
-      console.error('Email validation error:', error);
+      console.error('❌ Client: Email validation error:', error);
       return false;
     } finally {
       setEmailValidating(false);
