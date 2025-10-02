@@ -566,11 +566,15 @@ export default function HeroSection() {
               </Link>
             </div>
           <div 
-            className="items-center justify-center mx-auto inline-flex h-full"
+            className="items-center justify-center mx-auto inline-flex"
+            style={{
+              position: "absolute",
+              bottom: "0px",
+            }}
           >
             {/* Mobile Animation (sm and below) */}
             {screenWidth > 0 && (
-              <div className="sm:hidden overflow-hidden w-full absolute -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px]">
+              <div className="sm:hidden overflow-hidden w-full">
                 <motion.div
                   className="flex"
                   animate={{
@@ -617,7 +621,7 @@ export default function HeroSection() {
             )}
             
             {/* Desktop/Tablet Static Image (sm and above) */}
-            <div className="hidden sm:inline-flex absolute -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px]">
+            <div className="hidden sm:inline-flex">
               <Image
                 src="/images/hero image.png"
                 alt="Friends on a couch"
