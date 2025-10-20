@@ -121,7 +121,7 @@ export default function ListingSection() {
                 List your room
               </button>
               <Link
-                href="#view-apartments"
+                href="/rooms"
                 className="inline-flex border-[1.5px] border-[#10D1C1] items-center justify-center rounded-full text-black px-6 py-3 transition w-full md:w-auto"
                 style={{
                   boxShadow: "0px 0px 10px 0px #10D1C159"
