@@ -190,6 +190,11 @@ export default function Navbar() {
                 ? "text-white hover:text-white" 
                 : "text-black hover:text-black"
             }>Home</Link>
+             <Link href="/profiles" className={
+              isHomePage && !hasScrolled 
+                ? "text-white hover:text-white" 
+                : "text-black hover:text-black"
+            }>Profiles</Link>
             <Link href="/rooms" className={
               isHomePage && !hasScrolled 
                 ? "text-white hover:text-white" 

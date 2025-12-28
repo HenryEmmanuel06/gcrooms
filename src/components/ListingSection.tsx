@@ -38,6 +38,24 @@ interface Room {
   profile_image?: string;
 }
 
+interface Profile {
+  id: number;
+  full_name: string;
+  age: number;
+  occupation: string;
+  location: string;
+  state: string;
+  profile_photo?: string;
+  monthly_budget: number;
+  duration: string;
+  cleanliness_level: string;
+  pet_friendly: boolean;
+  smoking: boolean;
+  noise_level: string;
+  is_verified: string;
+  created_at: string;
+}
+
 // Generate URL slug from property title
 const generateSlug = (title: string, id: string): string => {
   const slug = title
@@ -52,6 +70,8 @@ const generateSlug = (title: string, id: string): string => {
 export default function ListingSection() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(true);
 
   // Format price to display in K format
   const formatPrice = (price: number): string => {
@@ -91,6 +111,53 @@ export default function ListingSection() {
 
     fetchRooms();
   }, []);
+
+  // Fetch profiles from Supabase
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      if (!supabase) {
+        setProfilesLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('is_verified', 'verified')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error('Error fetching profiles:', error);
+        } else {
+          setProfiles(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+      } finally {
+        setProfilesLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
+  // Generate profile slug from full name and id
+  const generateProfileSlug = (fullName: string, id: number): string => {
+    const slug = fullName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    return `${slug}-${id}`;
+  };
+
+  // Format budget to display with Nigerian currency and duration
+  const formatBudget = (budget: number, duration: string): string => {
+    return `₦${budget.toLocaleString()}/${duration}`;
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
@@ -471,6 +538,183 @@ export default function ListingSection() {
           </div>
         )}
       </div>
+
+      {/* Profile Listings Section */}
+      {profiles.length > 0 && (
+        <div className="mt-[60px] sm:mt-[80px] mx-auto w-[90%] max-w-[1320px]">
+          <div className="mb-8">
+            <h2 className="text-[28px] sm:text-[32px] md:text-[40px] font-bold text-black mb-2">
+              Verified Profiles
+            </h2>
+            <p className="text-[16px] text-gray-600">
+              Connect with verified roommates looking for shared spaces
+            </p>
+          </div>
+
+          {profilesLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-[#10D1C1] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Custom Navigation Buttons - Top Right */}
+              <div className="hidden sm:flex absolute -top-[35px] right-0 z-10 gap-2 mb-4">
+                <button className="swiper-button-prev-profiles w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors cursor-pointer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                  </svg>
+                </button>
+                <button className="swiper-button-next-profiles w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors cursor-pointer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                  </svg>
+                </button>
+              </div>
+
+              <Swiper
+                modules={[Pagination, Navigation]}
+                spaceBetween={20}
+                pagination={{ clickable: true }}
+                navigation={{
+                  prevEl: '.swiper-button-prev-profiles',
+                  nextEl: '.swiper-button-next-profiles',
+                }}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1.2,
+                    spaceBetween: 10,
+                  },
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 15,
+                  },
+                  1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 20,
+                  },
+                  1280: {
+                    slidesPerView: 4,
+                    spaceBetween: 20,
+                  },
+                }}
+                className="profiles-swiper"
+              >
+                {profiles.map((profile) => (
+                  <SwiperSlide key={profile.id}>
+                    <Link
+                      href={`/profiles/${generateProfileSlug(profile.full_name, profile.id)}`}
+                      className="block"
+                    >
+                      <div className="group bg-white rounded-[15px] overflow-hidden shadow-[0px_1px_15px_0px_#0000001A] cursor-pointer transition-all duration-300 my-3">
+                        {/* Profile Image */}
+                        <div className="relative w-full h-64 bg-gray-100 overflow-hidden">
+                          {profile.profile_photo ? (
+                            <img
+                              src={profile.profile_photo}
+                              alt={profile.full_name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                e.currentTarget.src = '/images/rooms-page-logo.svg';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                              <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                          )}
+                          {/* Verified Badge */}
+                          <div className="absolute top-3 left-3 bg-[#10D1C1] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
+                              <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.2 7.25a1 1 0 0 1-1.43.005L3.29 9.17a1 1 0 1 1 1.42-1.41l3.06 3.05 6.49-6.54a1 1 0 0 1 1.444.02z" fill="currentColor" />
+                            </svg>
+                            Verified
+                          </div>
+                        </div>
+
+                        {/* Profile Details */}
+                        <div className="p-5">
+                          <div className="mb-3">
+                            <h3 className="text-xl font-bold text-black mb-1">
+                              {profile.full_name}, {profile.age}
+                            </h3>
+                            <p className="text-sm text-gray-600">{profile.occupation}</p>
+                          </div>
+
+                          <div className="space-y-2 mb-4">
+                            {/* State */}
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                              </svg>
+                              <span>{profile.state}</span>
+                            </div>
+
+                            {/* Monthly Budget */}
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                              </svg>
+                              <span>{formatBudget(profile.monthly_budget, profile.duration)}</span>
+                            </div>
+
+                            {/* Duration */}
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                              </svg>
+                              <span>{profile.duration}</span>
+                            </div>
+                          </div>
+
+                          {/* Lifestyle Tags */}
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {profile.cleanliness_level && (
+                              <span className="bg-[#E6FFFB] text-[#0FB8A8] text-xs px-3 py-1 rounded-full font-medium">
+                                {profile.cleanliness_level}
+                              </span>
+                            )}
+                            {profile.noise_level && (
+                              <span className="bg-[#E6FFFB] text-[#0FB8A8] text-xs px-3 py-1 rounded-full font-medium">
+                                {profile.noise_level}
+                              </span>
+                            )}
+                            {profile.smoking === false && (
+                              <span className="bg-[#E6FFFB] text-[#0FB8A8] text-xs px-3 py-1 rounded-full font-medium">
+                                Non-smoker
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Views (placeholder - you can add view count if you track it) */}
+                          <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span>View profile</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          )}
+        </div>
+      )}
+
       <ListRoomModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

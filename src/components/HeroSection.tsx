@@ -5,9 +5,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import ListRoomModal from "./ListRoomModal";
+import CreateProfileModal from "./CreateProfileModal";
 
 export default function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [screenWidth, setScreenWidth] = useState(0);
 
   useEffect(() => {
@@ -555,15 +557,16 @@ export default function HeroSection() {
               >
                 List your room
               </button>
-              <Link
-                href="/rooms"
-                className="border border-[#FFBE06] rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow transition"
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(true)}
+                className="border border-[#FFBE06] rounded-full bg-[#10D1C1] text-black px-[35px] py-3 shadow transition font-semibold"
                 style={{
-                  boxShadow: "box-shadow: 0px 0px 10px 0px #660ED180",
+                  boxShadow: "0px 0px 10px 0px #660ED180",
                 }}
               >
-                View available apartments
-              </Link>
+                Create profile
+              </button>
             </div>
           <div 
             className="absolute items-center justify-center mx-auto inline-flex  -bottom-[30px] sm:-bottom-[50px] md:-bottom-[90px] lg:-bottom-[100px]"
@@ -634,6 +637,10 @@ export default function HeroSection() {
       <ListRoomModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+      <CreateProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
     </section>
   );
