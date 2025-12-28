@@ -71,9 +71,8 @@ export async function GET(request: NextRequest) {
 
     if (existingPayment) {
       // Payment already completed, redirect to success
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://gcrooms.vercel.app';
       return NextResponse.redirect(
-        new URL(`/details-payment/success?payment_id=${existingPayment.id}`, baseUrl)
+        new URL(`/details-payment/success?payment_id=${existingPayment.id}`, 'https://gcrooms.vercel.app')
       );
     }
 
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest) {
         email: profile.email_address,
         amount: amount * 100, // Paystack expects amount in kobo
         reference: paymentReference,
-        callback_url: `${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://gcrooms.vercel.app'}/api/details-payment/callback`,
+        callback_url: 'https://gcrooms.vercel.app/api/details-payment/callback',
         metadata: {
           send_details_id: send_details_id,
           profile_id: profile_id,

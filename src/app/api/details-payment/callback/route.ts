@@ -14,17 +14,8 @@ const supabase = supabaseUrl && supabaseKey
   : null;
 
 function getBaseUrl(request: NextRequest): string {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
-  if (envUrl) {
-    return envUrl.replace(/\/$/, '');
-  }
-  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
-  }
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
+  // Always use production URL for redirects
+  return 'https://gcrooms.vercel.app';
 }
 
 export async function GET(request: NextRequest) {

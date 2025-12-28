@@ -122,8 +122,7 @@ export async function POST(request: NextRequest) {
     // Send email to profile owner with limited information and payment button
     if (profile.email_address) {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://gcrooms.vercel.app";
-        const paymentUrl = `${baseUrl}/api/details-payment/initialize?send_details_id=${data.id}&profile_id=${profileId}`;
+        const paymentUrl = `https://gcrooms.vercel.app/api/details-payment/initialize?send_details_id=${data.id}&profile_id=${profileId}`;
 
         const emailHTML = `
           <!DOCTYPE html>
