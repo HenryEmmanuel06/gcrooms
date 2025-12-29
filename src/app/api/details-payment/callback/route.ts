@@ -114,10 +114,17 @@ export async function GET(request: NextRequest) {
       if (paymentByIds && !idsError) {
         existingPayment = paymentByIds;
         // Update the paystack_ref to match the actual reference first
-        await supabase
+        const { error: refUpdateError } = await supabase
           .from('details_payment')
           .update({ paystack_ref: reference })
           .eq('id', paymentByIds.id);
+        
+        if (refUpdateError) {
+          console.error('⚠️ Failed to update paystack_ref:', refUpdateError);
+          // Continue anyway - we'll update it in the main update
+        } else {
+          console.log('✅ Updated paystack_ref to:', reference);
+        }
       } else {
         console.error('❌ Payment record not found:', { reference, profileId, sendDetailsId, refError, idsError });
         const baseUrl = getBaseUrl(request);
@@ -164,6 +171,7 @@ export async function GET(request: NextRequest) {
     console.log('📝 Complete update data:', updateData);
     console.log('📝 Updating database with payment ID:', existingPayment.id);
     console.log('📝 Payment ID type:', typeof existingPayment.id);
+    console.log('📝 Existing payment record:', JSON.stringify(existingPayment, null, 2));
 
     // Ensure ID is a number
     const paymentId = typeof existingPayment.id === 'number' ? existingPayment.id : Number(existingPayment.id);
@@ -176,20 +184,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Verify record exists one more time before updating
+    const { data: verifyRecord, error: verifyError } = await supabase
+      .from('details_payment')
+      .select('id, payment_status, paystack_ref')
+      .eq('id', paymentId)
+      .single();
+
+    if (verifyError || !verifyRecord) {
+      console.error('❌ Record verification failed before update:', verifyError);
+      console.error('❌ Payment ID:', paymentId);
+      const baseUrl = getBaseUrl(request);
+      return NextResponse.redirect(
+        new URL(`/details-payment/failed?error=record_not_found&details=${encodeURIComponent(verifyError?.message || 'Record not found')}`, baseUrl)
+      );
+    }
+
+    console.log('✅ Record verified before update:', verifyRecord);
+
     // Update using the same pattern as connection-attempts
-    // First update without select to avoid single() error if no rows match
-    const { error: updateError } = await supabase
+    const { data: updatedPayment, error: updateError } = await supabase
       .from('details_payment')
       .update(updateData)
-      .eq('id', paymentId);
+      .eq('id', paymentId)
+      .select('*')
+      .single();
 
-    if (updateError) {
+    if (updateError || !updatedPayment) {
       console.error('❌ Database update failed:', updateError);
       console.error('❌ Update error details:', JSON.stringify(updateError, null, 2));
-      console.error('❌ Update error code:', updateError.code);
-      console.error('❌ Update error message:', updateError.message);
+      console.error('❌ Update error code:', updateError?.code);
+      console.error('❌ Update error message:', updateError?.message);
       console.error('❌ Payment ID:', paymentId);
       console.error('❌ Update data being sent:', JSON.stringify(updateData, null, 2));
+      console.error('❌ Updated payment result:', updatedPayment);
       
       // Check if the record exists
       const { data: existingRecord, error: selectError } = await supabase
@@ -202,32 +230,12 @@ export async function GET(request: NextRequest) {
       
       const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(
-        new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError.message)}`, baseUrl)
+        new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError?.message || 'No record updated')}`, baseUrl)
       );
     }
 
-    // After successful update, fetch the updated record
-    const { data: updatedPayment, error: fetchError } = await supabase
-      .from('details_payment')
-      .select('*')
-      .eq('id', paymentId)
-      .single();
-
-    // Use updatedPayment if available, otherwise use existingPayment
-    const finalPayment = updatedPayment || existingPayment;
-
-    if (fetchError && !updatedPayment) {
-      console.error('❌ Failed to fetch updated payment:', fetchError);
-      // Still continue - the update succeeded, we just can't fetch it
-      // Use existingPayment as fallback
-      if (transaction.status !== 'success') {
-        const baseUrl = getBaseUrl(request);
-        return NextResponse.redirect(
-          new URL('/details-payment/failed?error=fetch_updated_record_failed', baseUrl)
-        );
-      }
-      console.log('⚠️ Update succeeded but fetch failed, using existing payment data');
-    }
+    // Use updatedPayment as finalPayment
+    const finalPayment = updatedPayment;
 
     console.log('✅ Database updated successfully:', finalPayment);
     console.log('✅ Payment callback processed successfully:', {
