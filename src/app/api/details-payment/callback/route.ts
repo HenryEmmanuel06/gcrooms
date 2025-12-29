@@ -87,18 +87,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // First, try to find the payment record by paystack_ref
+    // First check if record exists - try by paystack_ref first
+    let paymentRecordId = reference;
     let existingPayment;
-    let findError = null;
 
     const { data: paymentByRef, error: refError } = await supabase
       .from('details_payment')
       .select('*')
       .eq('paystack_ref', reference)
-      .maybeSingle();
+      .single();
 
     if (paymentByRef && !refError) {
       existingPayment = paymentByRef;
+      paymentRecordId = paymentByRef.id;
     } else {
       // If not found by reference, try to find by profile_id and send_details_id
       console.log('Payment not found by reference, trying to find by profile_id and send_details_id');
@@ -110,102 +111,91 @@ export async function GET(request: NextRequest) {
         .eq('payment_status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .single();
 
       if (paymentByIds && !idsError) {
         existingPayment = paymentByIds;
+        paymentRecordId = paymentByIds.id;
         // Update the paystack_ref to match the actual reference
         await supabase
           .from('details_payment')
           .update({ paystack_ref: reference })
           .eq('id', paymentByIds.id);
       } else {
-        findError = idsError || refError;
+        console.error('❌ Payment record not found:', { reference, profileId, sendDetailsId, refError, idsError });
+        const baseUrl = getBaseUrl(request);
+        return NextResponse.redirect(
+          new URL('/details-payment/failed?error=record_not_found', baseUrl)
+        );
       }
     }
 
-    console.log('Looking for payment with reference:', reference);
-    console.log('Profile ID:', profileId, 'Send Details ID:', sendDetailsId);
-    console.log('Existing payment found:', existingPayment);
-    console.log('Find error:', findError);
+    console.log('✅ Found existing payment record:', existingPayment);
+    console.log('🔍 Transaction details:', {
+      id: transaction.id,
+      reference: transaction.reference,
+      status: transaction.status,
+      amount: transaction.amount,
+      customer: transaction.customer,
+      gateway_response: transaction.gateway_response,
+      paid_at: transaction.paid_at,
+      currency: transaction.currency
+    });
 
-    // Prepare update data
-    const updateData = {
+    // Prepare update data - same pattern as connection-attempts
+    const updateData: Record<string, unknown> = {
       transaction_id: transaction.id,
       transaction_status: transaction.status,
-      amount: transaction.amount / 100,
-      payment_status: transaction.status === 'success' ? 'success' : 'failed',
+      amount: transaction.amount / 100, // Convert from kobo to naira
+      payment_email: transaction.customer?.email || existingPayment.payment_email,
+      paystack_ref: transaction.reference,
+      payment_status: transaction.status,
       gateway_response: transaction.gateway_response || 'Successful',
       paid_at: transaction.paid_at || new Date().toISOString(),
       currency: transaction.currency || 'NGN',
       updated_at: new Date().toISOString(),
     };
 
-    let updatedPayment;
+    console.log('📝 Complete update data:', updateData);
+    console.log('📝 Updating database with payment ID:', paymentRecordId);
 
-    if (existingPayment) {
-      // Update existing payment record using the ID
-      const { data: updated, error: updateError } = await supabase
+    // Update using the same pattern as connection-attempts
+    const { data: updatedPayment, error: updateError } = await supabase
+      .from('details_payment')
+      .update(updateData)
+      .eq('id', paymentRecordId)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      console.error('❌ Database update failed:', updateError);
+      console.error('❌ Update error details:', JSON.stringify(updateError, null, 2));
+      console.error('❌ Update error code:', updateError.code);
+      console.error('❌ Update error message:', updateError.message);
+      console.error('❌ Payment ID:', paymentRecordId);
+      console.error('❌ Update data being sent:', JSON.stringify(updateData, null, 2));
+      
+      // Check if the record exists
+      const { data: existingRecord, error: selectError } = await supabase
         .from('details_payment')
-        .update({
-          ...updateData,
-          paystack_ref: reference, // Ensure reference is set correctly
-        })
-        .eq('id', existingPayment.id)
         .select('*')
-        .maybeSingle();
-
-      if (updateError || !updated) {
-        console.error('Failed to update payment record:', updateError);
-        console.error('Update error details:', JSON.stringify(updateError, null, 2));
-        console.error('Payment ID:', existingPayment.id);
-        console.error('Updated data:', updated);
-        const baseUrl = getBaseUrl(request);
-        return NextResponse.redirect(
-          new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError?.message || 'No record updated')}`, baseUrl)
-        );
-      }
-      updatedPayment = updated;
-      console.log('✅ Payment record updated successfully:', updatedPayment.id);
-    } else {
-      // Payment record doesn't exist, create it
-      // Get profile email for the payment record
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email_address')
-        .eq('id', profileId)
+        .eq('id', paymentRecordId)
         .single();
-
-      if (profileError || !profile) {
-        console.error('Failed to fetch profile for payment record:', profileError);
-        const baseUrl = getBaseUrl(request);
-        return NextResponse.redirect(
-          new URL('/details-payment/failed?error=profile_not_found', baseUrl)
-        );
-      }
-
-      const { data: created, error: createError } = await supabase
-        .from('details_payment')
-        .insert({
-          profile_id: Number(profileId),
-          send_details_id: Number(sendDetailsId),
-          paystack_ref: reference,
-          payment_email: profile?.email_address || transaction.customer?.email || '',
-          ...updateData,
-        })
-        .select('*')
-        .maybeSingle();
-
-      if (createError) {
-        console.error('Failed to create payment record:', createError);
-        console.error('Create error details:', JSON.stringify(createError, null, 2));
-        const baseUrl = getBaseUrl(request);
-        return NextResponse.redirect(
-          new URL(`/details-payment/failed?error=database_create_failed&details=${encodeURIComponent(createError.message)}`, baseUrl)
-        );
-      }
-      updatedPayment = created;
+      
+      console.error('❌ Existing record check:', { existingRecord, selectError });
+      
+      const baseUrl = getBaseUrl(request);
+      return NextResponse.redirect(
+        new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError.message)}`, baseUrl)
+      );
     }
+
+    console.log('✅ Database updated successfully:', updatedPayment);
+    console.log('✅ Payment callback processed successfully:', {
+      reference: transaction.reference,
+      status: transaction.status,
+      amount: transaction.amount / 100
+    });
 
     // If payment successful, send contact details and receipt
     if (transaction.status === 'success' && updatedPayment) {
@@ -215,14 +205,14 @@ export async function GET(request: NextRequest) {
           .from('send_details')
           .select('*')
           .eq('id', sendDetailsId)
-          .maybeSingle();
+          .single();
 
         // Get profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email_address, full_name')
           .eq('id', profileId)
-          .maybeSingle();
+          .single();
 
         if (!detailsError && !profileError && sendDetails && profile && profile.email_address) {
           // Send contact details email
