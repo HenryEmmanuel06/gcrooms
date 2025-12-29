@@ -61,8 +61,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if payment already exists (pending or success)
-    // This prevents creating multiple rows when button is clicked multiple times
+    // Check if a previous payment exists (pending or success)
     const { data: existingPayment, error: existingError } = await supabase
       .from('details_payment')
       .select('id, payment_status, payment_uuid, paystack_ref')
@@ -77,26 +76,23 @@ export async function GET(request: NextRequest) {
     let shouldCreateNewRecord = false;
 
     if (existingPayment) {
-      // Payment record already exists
+      // A previous payment record exists
       if (existingPayment.payment_status === 'success') {
-        // Payment already completed, redirect to success
+        // Payment already completed for this details/profile pair, redirect to success
         return NextResponse.redirect(
           new URL(`/details-payment/success?payment_id=${existingPayment.id}`, 'https://gcrooms.vercel.app')
         );
       }
-      
-      // Reuse existing pending payment (prevent duplicate rows)
-      console.log('✅ Reusing existing pending payment:', existingPayment.id);
-      paymentUuid = existingPayment.payment_uuid || uuidv4();
-      // Generate new Paystack reference for this transaction attempt (Paystack needs unique refs)
-      paymentReference = `details_${send_details_id}_${Date.now()}`;
-    } else {
-      // No existing payment, create new one
-      paymentUuid = uuidv4();
-      // Generate unique Paystack reference
-      paymentReference = `details_${send_details_id}_${Date.now()}`;
-      shouldCreateNewRecord = true;
+
+      // Previous attempt was not successful (pending/abandoned/failed)
+      // Always create a fresh payment row for this new button click
+      console.log('ℹ️ Previous payment exists but not successful, creating a new payment record');
     }
+
+    // For new attempts (no record or not-success), always generate a new UUID + Paystack reference
+    paymentUuid = uuidv4();
+    paymentReference = `details_${send_details_id}_${Date.now()}`;
+    shouldCreateNewRecord = true;
 
     // Initialize Paystack payment
     const amount = 1000; // Fixed amount of 1000 naira
@@ -163,80 +159,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create or update payment record
+    // Create payment record (one row per initialization attempt)
     if (shouldCreateNewRecord) {
-      // Double-check for race condition right before insert
-      const { data: doubleCheckPayment } = await supabase
+      const { error: paymentError } = await supabase
         .from('details_payment')
-        .select('id, payment_uuid, paystack_ref')
-        .eq('send_details_id', send_details_id)
-        .eq('profile_id', profile_id)
-        .eq('payment_status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .insert({
+          profile_id: Number(profile_id),
+          send_details_id: Number(send_details_id),
+          amount: amount,
+          currency: 'NGN',
+          payment_email: profile.email_address,
+          paystack_ref: paymentReference,
+          payment_uuid: paymentUuid,
+          payment_status: 'pending',
+        });
 
-      if (doubleCheckPayment) {
-        // Race condition: another request created it between our checks
-        console.log('⚠️ Race condition detected, reusing existing payment:', doubleCheckPayment.id);
-        paymentUuid = doubleCheckPayment.payment_uuid || paymentUuid;
-        // Keep existing paystack_ref or use new one
-        paymentReference = doubleCheckPayment.paystack_ref || paymentReference;
+      if (paymentError) {
+        console.error('Failed to create payment record:', paymentError);
       } else {
-        // Safe to create new payment record
-        const { error: paymentError } = await supabase
-          .from('details_payment')
-          .insert({
-            profile_id: Number(profile_id),
-            send_details_id: Number(send_details_id),
-            amount: amount,
-            currency: 'NGN',
-            payment_email: profile.email_address,
-            paystack_ref: paymentReference,
-            payment_uuid: paymentUuid,
-            payment_status: 'pending',
-          });
-
-        if (paymentError) {
-          console.error('Failed to create payment record:', paymentError);
-          // If duplicate key error, fetch the existing record
-          if (paymentError.code === '23505' || paymentError.message?.includes('duplicate')) {
-            const { data: existingRecord } = await supabase
-              .from('details_payment')
-              .select('id, payment_uuid, paystack_ref')
-              .eq('send_details_id', send_details_id)
-              .eq('profile_id', profile_id)
-              .eq('payment_status', 'pending')
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            if (existingRecord) {
-              paymentUuid = existingRecord.payment_uuid || paymentUuid;
-              paymentReference = existingRecord.paystack_ref || paymentReference;
-              console.log('✅ Using existing payment record:', existingRecord.id);
-            }
-          }
-        } else {
-          console.log('✅ Created new payment record with UUID:', paymentUuid);
-        }
-      }
-    } else {
-      // Update existing payment record with new Paystack reference
-      if (existingPayment) {
-        const { error: updateError } = await supabase
-          .from('details_payment')
-          .update({
-            paystack_ref: paymentReference,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingPayment.id);
-
-        if (updateError) {
-          console.error('Failed to update payment record reference:', updateError);
-        } else {
-          console.log('✅ Updated existing payment record reference:', paymentReference);
-        }
+        console.log('✅ Created new payment record with UUID:', paymentUuid);
       }
     }
 

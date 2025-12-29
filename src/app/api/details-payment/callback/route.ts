@@ -234,22 +234,60 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Record verified before update:', verifyRecord);
 
-    // Update using the same pattern as connection-attempts
-    // Prefer updating by payment_uuid (most reliable), fall back to numeric ID
-    let updateQuery = supabase
-      .from('details_payment')
-      .update(updateData);
+    // Determine the best UUID to use for update
+    // Priority: existingPayment.payment_uuid (from DB) > paymentUuid (from metadata) > paymentId (fallback)
+    const uuidToUse = existingPayment.payment_uuid || paymentUuid;
+    
+    console.log('🔍 UUID lookup details:', {
+      existingPayment_uuid: existingPayment.payment_uuid,
+      metadata_uuid: paymentUuid,
+      uuidToUse: uuidToUse,
+      paymentId: paymentId
+    });
 
-    if (paymentUuid) {
-      updateQuery = updateQuery.eq('payment_uuid', paymentUuid);
+    // Update using UUID if available (most reliable), otherwise use ID
+    let updatedPayment = null;
+    let updateError = null;
+
+    if (uuidToUse && existingPayment.payment_uuid) {
+      // Use UUID from the database record we found (most reliable)
+      console.log('📝 Updating by UUID from database:', existingPayment.payment_uuid);
+      const result = await supabase
+        .from('details_payment')
+        .update(updateData)
+        .eq('payment_uuid', existingPayment.payment_uuid)
+        .select('*')
+        .maybeSingle();
+      
+      updatedPayment = result.data;
+      updateError = result.error;
+      
+      // If UUID update failed, try by ID as fallback
+      if (updateError || !updatedPayment) {
+        console.log('⚠️ UUID update failed, trying ID fallback');
+        const fallbackResult = await supabase
+          .from('details_payment')
+          .update(updateData)
+          .eq('id', paymentId)
+          .select('*')
+          .maybeSingle();
+        
+        updatedPayment = fallbackResult.data;
+        updateError = fallbackResult.error;
+      }
     } else {
-      updateQuery = updateQuery.eq('id', paymentId);
+      // No UUID available, use ID
+      console.log('📝 Updating by ID:', paymentId);
+      const result = await supabase
+        .from('details_payment')
+        .update(updateData)
+        .eq('id', paymentId)
+        .select('*')
+        .maybeSingle();
+      
+      updatedPayment = result.data;
+      updateError = result.error;
     }
-
-    // Use maybeSingle so PostgREST doesn't throw "Cannot coerce the result to a single JSON object"
-    const { data: updatedPayment, error: updateError } = await updateQuery
-      .select('*')
-      .maybeSingle();
 
     if (updateError || !updatedPayment) {
       console.error('❌ Database update failed:', updateError);
@@ -257,17 +295,57 @@ export async function GET(request: NextRequest) {
       console.error('❌ Update error code:', updateError?.code);
       console.error('❌ Update error message:', updateError?.message);
       console.error('❌ Payment ID:', paymentId);
+      console.error('❌ UUID used for update:', uuidToUse);
       console.error('❌ Update data being sent:', JSON.stringify(updateData, null, 2));
       console.error('❌ Updated payment result:', updatedPayment);
       
-      // Check if the record exists
+      // Check if the record exists by UUID (if we used UUID)
+      if (uuidToUse) {
+        const { data: existingByUuid, error: uuidSelectError } = await supabase
+          .from('details_payment')
+          .select('*')
+          .eq('payment_uuid', uuidToUse)
+          .maybeSingle();
+        
+        console.error('❌ Record check by UUID:', { existingByUuid, uuidSelectError, uuidToUse });
+      }
+      
+      // Check if the record exists by ID
       const { data: existingRecord, error: selectError } = await supabase
         .from('details_payment')
         .select('*')
         .eq('id', paymentId)
-        .single();
+        .maybeSingle();
       
-      console.error('❌ Existing record check:', { existingRecord, selectError });
+      console.error('❌ Existing record check by ID:', { existingRecord, selectError, paymentId });
+      
+      // If record exists but update failed, try updating by ID as fallback
+      if (existingRecord && uuidToUse && !updateError) {
+        console.log('⚠️ Update by UUID returned null, trying update by ID as fallback');
+        const { data: fallbackUpdate, error: fallbackError } = await supabase
+          .from('details_payment')
+          .update(updateData)
+          .eq('id', paymentId)
+          .select('*')
+          .maybeSingle();
+        
+        if (!fallbackError && fallbackUpdate) {
+          console.log('✅ Fallback update by ID succeeded');
+          const finalPayment = fallbackUpdate;
+          
+          // Continue with success flow
+          const baseUrl = getBaseUrl(request);
+          if (transaction.status === 'success') {
+            return NextResponse.redirect(
+              new URL(`/details-payment/success?payment_id=${finalPayment.id}&reference=${reference}`, baseUrl)
+            );
+          } else {
+            return NextResponse.redirect(
+              new URL(`/details-payment/failed?reference=${reference}&status=${transaction.status}`, baseUrl)
+            );
+          }
+        }
+      }
       
       const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(
