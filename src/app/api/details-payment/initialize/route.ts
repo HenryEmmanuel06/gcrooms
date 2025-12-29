@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Route segment config
 export const dynamic = 'force-dynamic';
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
     // Initialize Paystack payment
     const amount = 1000; // Fixed amount of 1000 naira
     const paymentReference = `details_${send_details_id}_${Date.now()}`;
+    const paymentUuid = uuidv4(); // Generate unique UUID for payment record
 
     if (!process.env.PAYSTACK_SECRET_KEY) {
       return NextResponse.json(
@@ -101,6 +103,7 @@ export async function GET(request: NextRequest) {
         metadata: {
           send_details_id: send_details_id,
           profile_id: profile_id,
+          payment_uuid: paymentUuid, // Add UUID to metadata
           payment_type: 'details_access',
           custom_fields: [
             {
@@ -112,6 +115,11 @@ export async function GET(request: NextRequest) {
               display_name: "Profile ID",
               variable_name: "profile_id",
               value: profile_id
+            },
+            {
+              display_name: "Payment UUID",
+              variable_name: "payment_uuid",
+              value: paymentUuid
             }
           ]
         }
@@ -136,7 +144,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create payment record
+    // Create payment record with UUID
     const { error: paymentError } = await supabase
       .from('details_payment')
       .insert({
@@ -146,6 +154,7 @@ export async function GET(request: NextRequest) {
         currency: 'NGN',
         payment_email: profile.email_address,
         paystack_ref: paymentReference,
+        payment_uuid: paymentUuid, // Store UUID for reliable lookup
         payment_status: 'pending',
       });
 
@@ -156,6 +165,7 @@ export async function GET(request: NextRequest) {
 
     console.log('Details payment initialized successfully:', {
       reference: paymentReference,
+      payment_uuid: paymentUuid,
       amount: amount,
       email: profile.email_address
     });

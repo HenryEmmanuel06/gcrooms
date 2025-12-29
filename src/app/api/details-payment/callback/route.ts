@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
     const transaction = verificationData.data;
     const sendDetailsId = transaction.metadata?.send_details_id;
     const profileId = transaction.metadata?.profile_id;
+    const paymentUuid = transaction.metadata?.payment_uuid; // Extract UUID from metadata
 
     if (!sendDetailsId || !profileId) {
       console.error('Missing metadata in transaction');
@@ -87,20 +88,45 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // First check if record exists - try by paystack_ref first
+    // Find payment record by UUID (most reliable method)
     let existingPayment;
+    
+    if (paymentUuid) {
+      console.log('🔍 Looking up payment by UUID:', paymentUuid);
+      const { data: paymentByUuid, error: uuidError } = await supabase
+        .from('details_payment')
+        .select('*')
+        .eq('payment_uuid', paymentUuid)
+        .single();
 
-    const { data: paymentByRef, error: refError } = await supabase
-      .from('details_payment')
-      .select('*')
-      .eq('paystack_ref', reference)
-      .single();
+      if (paymentByUuid && !uuidError) {
+        existingPayment = paymentByUuid;
+        console.log('✅ Found payment record by UUID:', existingPayment.id);
+      } else {
+        console.error('❌ Payment not found by UUID:', uuidError);
+      }
+    }
 
-    if (paymentByRef && !refError) {
-      existingPayment = paymentByRef;
-    } else {
-      // If not found by reference, try to find by profile_id and send_details_id
-      console.log('Payment not found by reference, trying to find by profile_id and send_details_id');
+    // Fallback: Try by paystack_ref if UUID lookup failed
+    if (!existingPayment) {
+      console.log('⚠️ UUID lookup failed, trying paystack_ref:', reference);
+      const { data: paymentByRef, error: refError } = await supabase
+        .from('details_payment')
+        .select('*')
+        .eq('paystack_ref', reference)
+        .single();
+
+      if (paymentByRef && !refError) {
+        existingPayment = paymentByRef;
+        console.log('✅ Found payment record by paystack_ref:', existingPayment.id);
+      } else {
+        console.error('❌ Payment not found by paystack_ref:', refError);
+      }
+    }
+
+    // Last fallback: Try by profile_id and send_details_id
+    if (!existingPayment) {
+      console.log('⚠️ Reference lookup failed, trying by IDs');
       const { data: paymentByIds, error: idsError } = await supabase
         .from('details_payment')
         .select('*')
@@ -109,24 +135,13 @@ export async function GET(request: NextRequest) {
         .eq('payment_status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (paymentByIds && !idsError) {
         existingPayment = paymentByIds;
-        // Update the paystack_ref to match the actual reference first
-        const { error: refUpdateError } = await supabase
-          .from('details_payment')
-          .update({ paystack_ref: reference })
-          .eq('id', paymentByIds.id);
-        
-        if (refUpdateError) {
-          console.error('⚠️ Failed to update paystack_ref:', refUpdateError);
-          // Continue anyway - we'll update it in the main update
-        } else {
-          console.log('✅ Updated paystack_ref to:', reference);
-        }
+        console.log('✅ Found payment record by IDs:', existingPayment.id);
       } else {
-        console.error('❌ Payment record not found:', { reference, profileId, sendDetailsId, refError, idsError });
+        console.error('❌ Payment record not found by any method:', { paymentUuid, reference, profileId, sendDetailsId, idsError });
         const baseUrl = getBaseUrl(request);
         return NextResponse.redirect(
           new URL('/details-payment/failed?error=record_not_found', baseUrl)
@@ -184,12 +199,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify record exists one more time before updating
-    const { data: verifyRecord, error: verifyError } = await supabase
-      .from('details_payment')
-      .select('id, payment_status, paystack_ref')
-      .eq('id', paymentId)
-      .single();
+    // Verify record exists one more time before updating (use UUID if available for more reliable lookup)
+    let verifyRecord;
+    let verifyError = null;
+    
+    if (paymentUuid && existingPayment.payment_uuid === paymentUuid) {
+      // Use UUID for verification if available
+      const { data, error } = await supabase
+        .from('details_payment')
+        .select('id, payment_status, paystack_ref, payment_uuid')
+        .eq('payment_uuid', paymentUuid)
+        .single();
+      verifyRecord = data;
+      verifyError = error;
+    } else {
+      // Fallback to ID verification
+      const { data, error } = await supabase
+        .from('details_payment')
+        .select('id, payment_status, paystack_ref')
+        .eq('id', paymentId)
+        .single();
+      verifyRecord = data;
+      verifyError = error;
+    }
 
     if (verifyError || !verifyRecord) {
       console.error('❌ Record verification failed before update:', verifyError);
