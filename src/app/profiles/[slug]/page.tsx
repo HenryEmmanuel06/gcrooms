@@ -36,6 +36,7 @@ interface Profile {
   email_address?: string;
   is_verified: string;
   created_at: string;
+  views?: number;
 }
 
 interface ProfilePageProps {
@@ -53,6 +54,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [isShareDetailsModalOpen, setIsShareDetailsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasCountedView, setHasCountedView] = useState(false);
 
   const backgroundImages = [
     '/images/whyus-img.png',
@@ -76,6 +78,62 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
     getParams();
   }, [params]);
+
+  // Increment profile views when the page is viewed
+  useEffect(() => {
+    if (!profile || hasCountedView) return;
+
+    const incrementViews = async () => {
+      try {
+        const response = await fetch(`/api/profiles/${profile.id}/increment-views`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const responseText = await response.text();
+        console.log('View increment response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          text: responseText,
+        });
+
+        if (response.ok) {
+          try {
+            const result = JSON.parse(responseText);
+            if (result.success && typeof result.views === 'number') {
+              setProfile((prev) => (prev ? { ...prev, views: result.views } : prev));
+              setHasCountedView(true);
+            } else {
+              console.warn('Unexpected response format:', result);
+            }
+          } catch (parseError) {
+            console.error('Failed to parse success response:', parseError, responseText);
+          }
+        } else {
+          let errorData;
+          try {
+            errorData = JSON.parse(responseText);
+          } catch (parseError) {
+            errorData = { error: 'Failed to parse error response', rawText: responseText };
+          }
+          console.error('Failed to increment profile views:', {
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url,
+            error: errorData,
+          });
+          // Don't show error to user, just log it - view counting is not critical
+        }
+      } catch (e) {
+        console.error('Error incrementing profile views (network/fetch error):', e);
+      }
+    };
+
+    incrementViews();
+  }, [profile, hasCountedView]);
 
   // Background image rotation effect
   useEffect(() => {
@@ -184,7 +242,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                       </svg>
                       <div>
                         <p className="text-sm font-medium text-gray-700">Profile Views</p>
-                        <p className="text-sm text-gray-500">0 views</p>
+                        <p className="text-sm text-gray-500">
+                          {(profile.views ?? 0).toLocaleString()} views
+                        </p>
                       </div>
                     </div>
                   </div>
