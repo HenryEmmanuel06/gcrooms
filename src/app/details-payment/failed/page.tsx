@@ -1,12 +1,33 @@
+'use client';
+
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default function DetailsPaymentFailedPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const params = searchParams as unknown as Record<string, string>;
-  const error = params?.error;
-  const details = params?.details;
-  const reference = params?.reference;
-  const status = params?.status;
+export default function DetailsPaymentFailedPage() {
+  const searchParams = useSearchParams();
+
+  const error = searchParams.get('error') || undefined;
+  const details = searchParams.get('details') || undefined;
+  const reference = searchParams.get('reference') || undefined;
+  const status = searchParams.get('status') || undefined;
+  const source = searchParams.get('source') || undefined;
+
+  useEffect(() => {
+    // Log detailed error info to the browser console to help debug
+    console.error('[DetailsPaymentFailed] Payment error', {
+      error,
+      details,
+      reference,
+      status,
+      source,
+    });
+
+    if (details) {
+      console.error('[DetailsPaymentFailed] Raw details:', decodeURIComponent(details));
+    }
+  }, [error, details, reference, status, source]);
 
   const getErrorMessage = () => {
     if (error === 'database_update_failed') {
