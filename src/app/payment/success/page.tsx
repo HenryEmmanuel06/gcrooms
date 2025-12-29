@@ -38,7 +38,7 @@ export default async function PaymentSuccessPage({ searchParams }: { searchParam
   return (
     <>
       <Navbar />
-      <div className="flex items-center justify-center p-4 mt-[80px] h-[100vh]" style={{
+      <div className="flex items-center justify-center p-4 mt-[80px]" style={{
         maxHeight: "900px",
       }}>
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
