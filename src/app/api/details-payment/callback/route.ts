@@ -88,7 +88,6 @@ export async function GET(request: NextRequest) {
     }
 
     // First check if record exists - try by paystack_ref first
-    let paymentRecordId = reference;
     let existingPayment;
 
     const { data: paymentByRef, error: refError } = await supabase
@@ -99,7 +98,6 @@ export async function GET(request: NextRequest) {
 
     if (paymentByRef && !refError) {
       existingPayment = paymentByRef;
-      paymentRecordId = paymentByRef.id;
     } else {
       // If not found by reference, try to find by profile_id and send_details_id
       console.log('Payment not found by reference, trying to find by profile_id and send_details_id');
@@ -115,8 +113,7 @@ export async function GET(request: NextRequest) {
 
       if (paymentByIds && !idsError) {
         existingPayment = paymentByIds;
-        paymentRecordId = paymentByIds.id;
-        // Update the paystack_ref to match the actual reference
+        // Update the paystack_ref to match the actual reference first
         await supabase
           .from('details_payment')
           .update({ paystack_ref: reference })
@@ -128,6 +125,14 @@ export async function GET(request: NextRequest) {
           new URL('/details-payment/failed?error=record_not_found', baseUrl)
         );
       }
+    }
+
+    if (!existingPayment) {
+      console.error('❌ No payment record found after all attempts');
+      const baseUrl = getBaseUrl(request);
+      return NextResponse.redirect(
+        new URL('/details-payment/failed?error=record_not_found', baseUrl)
+      );
     }
 
     console.log('✅ Found existing payment record:', existingPayment);
@@ -157,29 +162,40 @@ export async function GET(request: NextRequest) {
     };
 
     console.log('📝 Complete update data:', updateData);
-    console.log('📝 Updating database with payment ID:', paymentRecordId);
+    console.log('📝 Updating database with payment ID:', existingPayment.id);
+    console.log('📝 Payment ID type:', typeof existingPayment.id);
+
+    // Ensure ID is a number
+    const paymentId = typeof existingPayment.id === 'number' ? existingPayment.id : Number(existingPayment.id);
+    
+    if (!Number.isFinite(paymentId)) {
+      console.error('❌ Invalid payment ID:', existingPayment.id);
+      const baseUrl = getBaseUrl(request);
+      return NextResponse.redirect(
+        new URL('/details-payment/failed?error=invalid_payment_id', baseUrl)
+      );
+    }
 
     // Update using the same pattern as connection-attempts
-    const { data: updatedPayment, error: updateError } = await supabase
+    // First update without select to avoid single() error if no rows match
+    const { error: updateError } = await supabase
       .from('details_payment')
       .update(updateData)
-      .eq('id', paymentRecordId)
-      .select('*')
-      .single();
+      .eq('id', paymentId);
 
     if (updateError) {
       console.error('❌ Database update failed:', updateError);
       console.error('❌ Update error details:', JSON.stringify(updateError, null, 2));
       console.error('❌ Update error code:', updateError.code);
       console.error('❌ Update error message:', updateError.message);
-      console.error('❌ Payment ID:', paymentRecordId);
+      console.error('❌ Payment ID:', paymentId);
       console.error('❌ Update data being sent:', JSON.stringify(updateData, null, 2));
       
       // Check if the record exists
       const { data: existingRecord, error: selectError } = await supabase
         .from('details_payment')
         .select('*')
-        .eq('id', paymentRecordId)
+        .eq('id', paymentId)
         .single();
       
       console.error('❌ Existing record check:', { existingRecord, selectError });
@@ -190,7 +206,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ Database updated successfully:', updatedPayment);
+    // After successful update, fetch the updated record
+    const { data: updatedPayment, error: fetchError } = await supabase
+      .from('details_payment')
+      .select('*')
+      .eq('id', paymentId)
+      .single();
+
+    // Use updatedPayment if available, otherwise use existingPayment
+    const finalPayment = updatedPayment || existingPayment;
+
+    if (fetchError && !updatedPayment) {
+      console.error('❌ Failed to fetch updated payment:', fetchError);
+      // Still continue - the update succeeded, we just can't fetch it
+      // Use existingPayment as fallback
+      if (transaction.status !== 'success') {
+        const baseUrl = getBaseUrl(request);
+        return NextResponse.redirect(
+          new URL('/details-payment/failed?error=fetch_updated_record_failed', baseUrl)
+        );
+      }
+      console.log('⚠️ Update succeeded but fetch failed, using existing payment data');
+    }
+
+    console.log('✅ Database updated successfully:', finalPayment);
     console.log('✅ Payment callback processed successfully:', {
       reference: transaction.reference,
       status: transaction.status,
@@ -198,7 +237,7 @@ export async function GET(request: NextRequest) {
     });
 
     // If payment successful, send contact details and receipt
-    if (transaction.status === 'success' && updatedPayment) {
+    if (transaction.status === 'success' && finalPayment) {
       try {
         // Get send_details
         const { data: sendDetails, error: detailsError } = await supabase
@@ -338,7 +377,7 @@ export async function GET(request: NextRequest) {
 
     if (transaction.status === 'success') {
       return NextResponse.redirect(
-        new URL(`/details-payment/success?payment_id=${updatedPayment.id}&reference=${reference}`, baseUrl)
+        new URL(`/details-payment/success?payment_id=${finalPayment.id}&reference=${reference}`, baseUrl)
       );
     } else {
       return NextResponse.redirect(
