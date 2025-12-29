@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
       state: cleanText(body.state, 120),
       about: cleanText(body.about, 2000),
       profile_photo: cleanText(body.profile_photo, 500),
+      profile_protrait1: cleanText(body.profile_protrait1, 500) || null,
+      profile_protrait2: cleanText(body.profile_protrait2, 500) || null,
       monthly_budget: monthlyBudget,
       duration: cleanText(body.duration, 120),
       cleanliness_level: cleanText(body.cleanliness_level, 120),

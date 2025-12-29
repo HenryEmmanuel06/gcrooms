@@ -4,6 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import CreateProfileModal from '@/components/CreateProfileModal';
 import ShareDetailsModal from '@/components/ShareDetailsModal';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +23,8 @@ interface Profile {
   state: string;
   about: string;
   profile_photo?: string;
+  profile_protrait1?: string;
+  profile_protrait2?: string;
   monthly_budget: number;
   duration: string;
   cleanliness_level: string;
@@ -296,6 +302,83 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   
                 </div>
               </div>
+
+              {/* More Photos (portraits) - Desktop and Mobile */}
+              {(profile.profile_protrait1 || profile.profile_protrait2) && (
+                <div className="bg-white rounded-2xl p-6 mt-6 pt-0">
+                  {/* Desktop: side-by-side photos */}
+                  <div className="hidden sm:block mt-[20px]">
+                    <h2 className="text-[20px] sm:text-[24px] font-semibold text-black tracking-wide mb-[15px]">
+                      More Photos
+                    </h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      {profile.profile_protrait1 && (
+                        <div className="rounded-2xl overflow-hidden">
+                          <Image
+                            src={profile.profile_protrait1}
+                            alt="Profile portrait 1"
+                            width={1200}
+                            height={470}
+                            className="w-full h-[300px] object-cover"
+                          />
+                        </div>
+                      )}
+                      {profile.profile_protrait2 && (
+                        <div className="rounded-2xl overflow-hidden">
+                          <Image
+                            src={profile.profile_protrait2}
+                            alt="Profile portrait 2"
+                            width={1200}
+                            height={470}
+                            className="w-full h-[300px] object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile: Swiper similar to room portraits */}
+                  <div className="mt-[20px] sm:hidden">
+                    <h2 className="text-[20px] font-semibold text-black tracking-wide mb-[15px]">
+                      More Photos
+                    </h2>
+                    <Swiper
+                      modules={[Pagination]}
+                      spaceBetween={15}
+                      slidesPerView={1.2}
+                      pagination={{ clickable: true }}
+                      className="roommates-swiper"
+                    >
+                      {profile.profile_protrait1 && (
+                        <SwiperSlide>
+                          <div className="rounded-2xl overflow-hidden">
+                            <Image
+                              src={profile.profile_protrait1}
+                              alt="Profile portrait 1"
+                              width={1200}
+                              height={300}
+                              className="w-full h-[400px] object-cover"
+                            />
+                          </div>
+                        </SwiperSlide>
+                      )}
+                      {profile.profile_protrait2 && (
+                        <SwiperSlide>
+                          <div className="rounded-2xl overflow-hidden">
+                            <Image
+                              src={profile.profile_protrait2}
+                              alt="Profile portrait 2"
+                              width={1200}
+                              height={300}
+                              className="w-full h-[400px] object-cover"
+                            />
+                          </div>
+                        </SwiperSlide>
+                      )}
+                    </Swiper>
+                  </div>
+                </div>
+              )}
 
               {/* I am Interested Button */}
               <div className="bg-white rounded-2xl p-6 mt-6">

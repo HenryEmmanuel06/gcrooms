@@ -79,6 +79,8 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
     noise_level: "",
   });
   const [profileImageUrl, setProfileImageUrl] = useState<string>("");
+  const [profilePortrait1Url, setProfilePortrait1Url] = useState<string>("");
+  const [profilePortrait2Url, setProfilePortrait2Url] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
@@ -376,12 +378,16 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
     return publicUrl;
   };
 
-  const handleImageUpload = async (files: FileList | null) => {
+  const uploadAndSetImage = async (
+    files: FileList | null,
+    setUrl: (url: string) => void,
+    errorKey: keyof Record<string, string>
+  ) => {
     if (!files || files.length === 0) return;
     const file = files[0];
     setUploadingImage(true);
     setError("");
-    setValidationErrors((prev) => ({ ...prev, profile_photo: "" }));
+    setValidationErrors((prev) => ({ ...prev, [errorKey]: "" }));
     try {
       const validation = await validateImageFile(file);
       if (!validation.isValid) {
@@ -390,18 +396,29 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
       const compressed = await compressImage(file);
       const fileName = generateSecureFilename(file.name);
       const url = await uploadImageToStorage(compressed, fileName);
-      console.log("Setting profile image URL:", url);
-      setProfileImageUrl(url);
-      // Force a small delay to ensure state updates
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log("Setting image URL for", errorKey, url);
+      setUrl(url);
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (err) {
-      console.error("Profile image upload error", err);
+      console.error("Image upload error", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to upload image";
       setError(errorMessage);
-      setValidationErrors((prev) => ({ ...prev, profile_photo: errorMessage }));
+      setValidationErrors((prev) => ({ ...prev, [errorKey]: errorMessage as string }));
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const handleImageUpload = async (files: FileList | null) => {
+    await uploadAndSetImage(files, setProfileImageUrl, "profile_photo");
+  };
+
+  const handlePortrait1Upload = async (files: FileList | null) => {
+    await uploadAndSetImage(files, setProfilePortrait1Url, "profile_protrait1");
+  };
+
+  const handlePortrait2Upload = async (files: FileList | null) => {
+    await uploadAndSetImage(files, setProfilePortrait2Url, "profile_protrait2");
   };
 
   // Helper function to count words
@@ -484,6 +501,8 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
       noise_level: "",
     });
     setProfileImageUrl("");
+    setProfilePortrait1Url("");
+    setProfilePortrait2Url("");
     setValidationErrors({});
     setError("");
     setSuccess("");
@@ -530,6 +549,8 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
         phone_number: form.phone_number.replace(/[^\d+]/g, ""),
         email_address: sanitizeText(form.email_address, 220),
         noise_level: sanitizeText(form.noise_level, 120),
+        profile_protrait1: profilePortrait1Url || null,
+        profile_protrait2: profilePortrait2Url || null,
       };
 
       const response = await fetch("/api/profiles", {
@@ -901,6 +922,68 @@ export default function CreateProfileModal({ isOpen, onClose }: CreateProfileMod
                   </div>
                 </div>
               </div>
+
+          {/* Profile Portrait Photos (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Additional profile photos (optional)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Portrait 1 */}
+              <div className="rounded-xl border border-dashed border-gray-300 p-4">
+                <p className="text-xs text-gray-500 mb-2">Portrait 1</p>
+                <div className="rounded-2xl overflow-hidden bg-gray-100 h-32 mb-3">
+                  {profilePortrait1Url ? (
+                    <img
+                      src={profilePortrait1Url}
+                      alt="Portrait 1"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">
+                      PNG/JPG up to 10MB
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handlePortrait1Upload(e.currentTarget.files)}
+                  disabled={uploadingImage}
+                  className="block w-full text-xs text-gray-700 file:mr-3 file:rounded-full file:border-0 file:bg-[#FFBE06] file:px-4 file:py-2 file:text-black file:font-semibold hover:file:bg-[#f0b400] cursor-pointer"
+                />
+                {validationErrors.profile_protrait1 && (
+                  <p className="text-red-600 text-xs mt-1">{validationErrors.profile_protrait1}</p>
+                )}
+              </div>
+
+              {/* Portrait 2 */}
+              <div className="rounded-xl border border-dashed border-gray-300 p-4">
+                <p className="text-xs text-gray-500 mb-2">Portrait 2</p>
+                <div className="rounded-2xl overflow-hidden bg-gray-100 h-32 mb-3">
+                  {profilePortrait2Url ? (
+                    <img
+                      src={profilePortrait2Url}
+                      alt="Portrait 2"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">
+                      PNG/JPG up to 10MB
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handlePortrait2Upload(e.currentTarget.files)}
+                  disabled={uploadingImage}
+                  className="block w-full text-xs text-gray-700 file:mr-3 file:rounded-full file:border-0 file:bg-[#FFBE06] file:px-4 file:py-2 file:text-black file:font-semibold hover:file:bg-[#f0b400] cursor-pointer"
+                />
+                {validationErrors.profile_protrait2 && (
+                  <p className="text-red-600 text-xs mt-1">{validationErrors.profile_protrait2}</p>
+                )}
+              </div>
+            </div>
+          </div>
 
               {/* Status messages */}
               {error && <p className="text-red-600 text-sm">{error}</p>}
