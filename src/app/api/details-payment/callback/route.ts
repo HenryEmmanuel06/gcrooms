@@ -235,12 +235,21 @@ export async function GET(request: NextRequest) {
     console.log('✅ Record verified before update:', verifyRecord);
 
     // Update using the same pattern as connection-attempts
-    const { data: updatedPayment, error: updateError } = await supabase
+    // Prefer updating by payment_uuid (most reliable), fall back to numeric ID
+    let updateQuery = supabase
       .from('details_payment')
-      .update(updateData)
-      .eq('id', paymentId)
+      .update(updateData);
+
+    if (paymentUuid) {
+      updateQuery = updateQuery.eq('payment_uuid', paymentUuid);
+    } else {
+      updateQuery = updateQuery.eq('id', paymentId);
+    }
+
+    // Use maybeSingle so PostgREST doesn't throw "Cannot coerce the result to a single JSON object"
+    const { data: updatedPayment, error: updateError } = await updateQuery
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (updateError || !updatedPayment) {
       console.error('❌ Database update failed:', updateError);
