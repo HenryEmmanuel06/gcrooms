@@ -78,86 +78,33 @@ export async function GET(request: NextRequest) {
     const transaction = verificationData.data;
     const sendDetailsId = transaction.metadata?.send_details_id;
     const profileId = transaction.metadata?.profile_id;
-    const paymentUuid = transaction.metadata?.payment_uuid; // Extract UUID from metadata
+    const paymentUuid = transaction.metadata?.payment_uuid; // Extract UUID from metadata (key for our row)
 
-    if (!sendDetailsId || !profileId) {
-      console.error('Missing metadata in transaction');
+    if (!sendDetailsId || !profileId || !paymentUuid) {
+      console.error('Missing metadata in transaction', { sendDetailsId, profileId, paymentUuid });
       const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(
         new URL('/details-payment/failed?error=missing_metadata', baseUrl)
       );
     }
 
-    // Find payment record by UUID (most reliable method)
-    let existingPayment;
-    
-    if (paymentUuid) {
-      console.log('🔍 Looking up payment by UUID:', paymentUuid);
-      const { data: paymentByUuid, error: uuidError } = await supabase
-        .from('details_payment')
-        .select('*')
-        .eq('payment_uuid', paymentUuid)
-        .single();
+    // Find payment attempt row by UUID (one row was created when the button was clicked)
+    console.log('🔍 Looking up payment attempt by UUID:', paymentUuid);
+    const { data: existingPayment, error: findError } = await supabase
+      .from('details_payment_attempts')
+      .select('*')
+      .eq('payment_uuid', paymentUuid)
+      .maybeSingle();
 
-      if (paymentByUuid && !uuidError) {
-        existingPayment = paymentByUuid;
-        console.log('✅ Found payment record by UUID:', existingPayment.id);
-      } else {
-        console.error('❌ Payment not found by UUID:', uuidError);
-      }
-    }
-
-    // Fallback: Try by paystack_ref if UUID lookup failed
-    if (!existingPayment) {
-      console.log('⚠️ UUID lookup failed, trying paystack_ref:', reference);
-      const { data: paymentByRef, error: refError } = await supabase
-        .from('details_payment')
-        .select('*')
-        .eq('paystack_ref', reference)
-        .single();
-
-      if (paymentByRef && !refError) {
-        existingPayment = paymentByRef;
-        console.log('✅ Found payment record by paystack_ref:', existingPayment.id);
-      } else {
-        console.error('❌ Payment not found by paystack_ref:', refError);
-      }
-    }
-
-    // Last fallback: Try by profile_id and send_details_id
-    if (!existingPayment) {
-      console.log('⚠️ Reference lookup failed, trying by IDs');
-      const { data: paymentByIds, error: idsError } = await supabase
-        .from('details_payment')
-        .select('*')
-        .eq('profile_id', profileId)
-        .eq('send_details_id', sendDetailsId)
-        .eq('payment_status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (paymentByIds && !idsError) {
-        existingPayment = paymentByIds;
-        console.log('✅ Found payment record by IDs:', existingPayment.id);
-      } else {
-        console.error('❌ Payment record not found by any method:', { paymentUuid, reference, profileId, sendDetailsId, idsError });
-        const baseUrl = getBaseUrl(request);
-        return NextResponse.redirect(
-          new URL('/details-payment/failed?error=record_not_found', baseUrl)
-        );
-      }
-    }
-
-    if (!existingPayment) {
-      console.error('❌ No payment record found after all attempts');
+    if (findError || !existingPayment) {
+      console.error('❌ Payment attempt not found for UUID:', { paymentUuid, findError });
       const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(
         new URL('/details-payment/failed?error=record_not_found', baseUrl)
       );
     }
 
-    console.log('✅ Found existing payment record:', existingPayment);
+    console.log('✅ Found existing payment attempt record:', existingPayment);
     console.log('🔍 Transaction details:', {
       id: transaction.id,
       reference: transaction.reference,
@@ -184,169 +131,21 @@ export async function GET(request: NextRequest) {
     };
 
     console.log('📝 Complete update data:', updateData);
-    console.log('📝 Updating database with payment ID:', existingPayment.id);
-    console.log('📝 Payment ID type:', typeof existingPayment.id);
-    console.log('📝 Existing payment record:', JSON.stringify(existingPayment, null, 2));
 
-    // Ensure ID is a number
-    const paymentId = typeof existingPayment.id === 'number' ? existingPayment.id : Number(existingPayment.id);
-    
-    if (!Number.isFinite(paymentId)) {
-      console.error('❌ Invalid payment ID:', existingPayment.id);
-      const baseUrl = getBaseUrl(request);
-      return NextResponse.redirect(
-        new URL('/details-payment/failed?error=invalid_payment_id', baseUrl)
-      );
-    }
-
-    // Verify record exists one more time before updating (use UUID if available for more reliable lookup)
-    let verifyRecord;
-    let verifyError = null;
-    
-    if (paymentUuid && existingPayment.payment_uuid === paymentUuid) {
-      // Use UUID for verification if available
-      const { data, error } = await supabase
-        .from('details_payment')
-        .select('id, payment_status, paystack_ref, payment_uuid')
-        .eq('payment_uuid', paymentUuid)
-        .single();
-      verifyRecord = data;
-      verifyError = error;
-    } else {
-      // Fallback to ID verification
-      const { data, error } = await supabase
-        .from('details_payment')
-        .select('id, payment_status, paystack_ref')
-        .eq('id', paymentId)
-        .single();
-      verifyRecord = data;
-      verifyError = error;
-    }
-
-    if (verifyError || !verifyRecord) {
-      console.error('❌ Record verification failed before update:', verifyError);
-      console.error('❌ Payment ID:', paymentId);
-      const baseUrl = getBaseUrl(request);
-      return NextResponse.redirect(
-        new URL(`/details-payment/failed?error=record_not_found&details=${encodeURIComponent(verifyError?.message || 'Record not found')}`, baseUrl)
-      );
-    }
-
-    console.log('✅ Record verified before update:', verifyRecord);
-
-    // Determine the best UUID to use for update
-    // Priority: existingPayment.payment_uuid (from DB) > paymentUuid (from metadata) > paymentId (fallback)
-    const uuidToUse = existingPayment.payment_uuid || paymentUuid;
-    
-    console.log('🔍 UUID lookup details:', {
-      existingPayment_uuid: existingPayment.payment_uuid,
-      metadata_uuid: paymentUuid,
-      uuidToUse: uuidToUse,
-      paymentId: paymentId
-    });
-
-    // Update using UUID if available (most reliable), otherwise use ID
-    let updatedPayment = null;
-    let updateError = null;
-
-    if (uuidToUse && existingPayment.payment_uuid) {
-      // Use UUID from the database record we found (most reliable)
-      console.log('📝 Updating by UUID from database:', existingPayment.payment_uuid);
-      const result = await supabase
-        .from('details_payment')
-        .update(updateData)
-        .eq('payment_uuid', existingPayment.payment_uuid)
-        .select('*')
-        .maybeSingle();
-      
-      updatedPayment = result.data;
-      updateError = result.error;
-      
-      // If UUID update failed, try by ID as fallback
-      if (updateError || !updatedPayment) {
-        console.log('⚠️ UUID update failed, trying ID fallback');
-        const fallbackResult = await supabase
-          .from('details_payment')
-          .update(updateData)
-          .eq('id', paymentId)
-          .select('*')
-          .maybeSingle();
-        
-        updatedPayment = fallbackResult.data;
-        updateError = fallbackResult.error;
-      }
-    } else {
-      // No UUID available, use ID
-      console.log('📝 Updating by ID:', paymentId);
-      const result = await supabase
-        .from('details_payment')
-        .update(updateData)
-        .eq('id', paymentId)
-        .select('*')
-        .maybeSingle();
-      
-      updatedPayment = result.data;
-      updateError = result.error;
-    }
+    // Update the payment attempt row using the UUID (single source of truth)
+    const { data: updatedPayment, error: updateError } = await supabase
+      .from('details_payment_attempts')
+      .update(updateData)
+      .eq('payment_uuid', paymentUuid)
+      .select('*')
+      .maybeSingle();
 
     if (updateError || !updatedPayment) {
-      console.error('❌ Database update failed:', updateError);
+      console.error('❌ Database update failed for attempts table:', updateError);
       console.error('❌ Update error details:', JSON.stringify(updateError, null, 2));
-      console.error('❌ Update error code:', updateError?.code);
-      console.error('❌ Update error message:', updateError?.message);
-      console.error('❌ Payment ID:', paymentId);
-      console.error('❌ UUID used for update:', uuidToUse);
+      console.error('❌ Payment UUID:', paymentUuid);
       console.error('❌ Update data being sent:', JSON.stringify(updateData, null, 2));
-      console.error('❌ Updated payment result:', updatedPayment);
-      
-      // Check if the record exists by UUID (if we used UUID)
-      if (uuidToUse) {
-        const { data: existingByUuid, error: uuidSelectError } = await supabase
-          .from('details_payment')
-          .select('*')
-          .eq('payment_uuid', uuidToUse)
-          .maybeSingle();
-        
-        console.error('❌ Record check by UUID:', { existingByUuid, uuidSelectError, uuidToUse });
-      }
-      
-      // Check if the record exists by ID
-      const { data: existingRecord, error: selectError } = await supabase
-        .from('details_payment')
-        .select('*')
-        .eq('id', paymentId)
-        .maybeSingle();
-      
-      console.error('❌ Existing record check by ID:', { existingRecord, selectError, paymentId });
-      
-      // If record exists but update failed, try updating by ID as fallback
-      if (existingRecord && uuidToUse && !updateError) {
-        console.log('⚠️ Update by UUID returned null, trying update by ID as fallback');
-        const { data: fallbackUpdate, error: fallbackError } = await supabase
-          .from('details_payment')
-          .update(updateData)
-          .eq('id', paymentId)
-          .select('*')
-          .maybeSingle();
-        
-        if (!fallbackError && fallbackUpdate) {
-          console.log('✅ Fallback update by ID succeeded');
-          const finalPayment = fallbackUpdate;
-          
-          // Continue with success flow
-          const baseUrl = getBaseUrl(request);
-          if (transaction.status === 'success') {
-            return NextResponse.redirect(
-              new URL(`/details-payment/success?payment_id=${finalPayment.id}&reference=${reference}`, baseUrl)
-            );
-          } else {
-            return NextResponse.redirect(
-              new URL(`/details-payment/failed?reference=${reference}&status=${transaction.status}`, baseUrl)
-            );
-          }
-        }
-      }
-      
+
       const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(
         new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError?.message || 'No record updated')}`, baseUrl)
@@ -356,7 +155,7 @@ export async function GET(request: NextRequest) {
     // Use updatedPayment as finalPayment
     const finalPayment = updatedPayment;
 
-    console.log('✅ Database updated successfully:', finalPayment);
+    console.log('✅ Database attempt updated successfully:', finalPayment);
     console.log('✅ Payment callback processed successfully:', {
       reference: transaction.reference,
       status: transaction.status,

@@ -61,38 +61,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if a previous payment exists (pending or success)
-    const { data: existingPayment, error: existingError } = await supabase
-      .from('details_payment')
-      .select('id, payment_status, payment_uuid, paystack_ref')
-      .eq('send_details_id', send_details_id)
-      .eq('profile_id', profile_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    let paymentUuid: string;
-    let paymentReference: string;
-    let shouldCreateNewRecord = false;
-
-    if (existingPayment) {
-      // A previous payment record exists
-      if (existingPayment.payment_status === 'success') {
-        // Payment already completed for this details/profile pair, redirect to success
-        return NextResponse.redirect(
-          new URL(`/details-payment/success?payment_id=${existingPayment.id}`, 'https://gcrooms.vercel.app')
-        );
-      }
-
-      // Previous attempt was not successful (pending/abandoned/failed)
-      // Always create a fresh payment row for this new button click
-      console.log('ℹ️ Previous payment exists but not successful, creating a new payment record');
-    }
-
-    // For new attempts (no record or not-success), always generate a new UUID + Paystack reference
-    paymentUuid = uuidv4();
-    paymentReference = `details_${send_details_id}_${Date.now()}`;
-    shouldCreateNewRecord = true;
+    // Always create a fresh payment attempt for each mail button click.
+    // We do NOT reuse old attempts; abandoned attempts stay as-is.
+    const paymentUuid = uuidv4();
+    const paymentReference = `details_${send_details_id}_${Date.now()}`;
 
     // Initialize Paystack payment
     const amount = 1000; // Fixed amount of 1000 naira
@@ -159,26 +131,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create payment record (one row per initialization attempt)
-    if (shouldCreateNewRecord) {
-      const { error: paymentError } = await supabase
-        .from('details_payment')
-        .insert({
-          profile_id: Number(profile_id),
-          send_details_id: Number(send_details_id),
-          amount: amount,
-          currency: 'NGN',
-          payment_email: profile.email_address,
-          paystack_ref: paymentReference,
-          payment_uuid: paymentUuid,
-          payment_status: 'pending',
-        });
+    // Create a simple payment attempt row for this click
+    const { error: paymentError } = await supabase
+      .from('details_payment_attempts')
+      .insert({
+        profile_id: Number(profile_id),
+        send_details_id: Number(send_details_id),
+        amount: amount,
+        currency: 'NGN',
+        payment_email: profile.email_address,
+        paystack_ref: paymentReference,
+        payment_uuid: paymentUuid,
+        payment_status: 'pending',
+      });
 
-      if (paymentError) {
-        console.error('Failed to create payment record:', paymentError);
-      } else {
-        console.log('✅ Created new payment record with UUID:', paymentUuid);
-      }
+    if (paymentError) {
+      console.error('Failed to create payment attempt record:', paymentError);
+      // We still redirect the user to Paystack; record-keeping failure should not block payment UI
+    } else {
+      console.log('✅ Created new payment attempt record with UUID:', paymentUuid);
     }
 
     console.log('Details payment initialized successfully:', {
