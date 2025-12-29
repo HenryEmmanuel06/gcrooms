@@ -87,7 +87,49 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Update payment record
+    // First, try to find the payment record by paystack_ref
+    let existingPayment;
+    let findError = null;
+
+    const { data: paymentByRef, error: refError } = await supabase
+      .from('details_payment')
+      .select('*')
+      .eq('paystack_ref', reference)
+      .single();
+
+    if (paymentByRef) {
+      existingPayment = paymentByRef;
+    } else {
+      // If not found by reference, try to find by profile_id and send_details_id
+      console.log('Payment not found by reference, trying to find by profile_id and send_details_id');
+      const { data: paymentByIds, error: idsError } = await supabase
+        .from('details_payment')
+        .select('*')
+        .eq('profile_id', profileId)
+        .eq('send_details_id', sendDetailsId)
+        .eq('payment_status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (paymentByIds) {
+        existingPayment = paymentByIds;
+        // Update the paystack_ref to match the actual reference
+        await supabase
+          .from('details_payment')
+          .update({ paystack_ref: reference })
+          .eq('id', paymentByIds.id);
+      } else {
+        findError = idsError || refError;
+      }
+    }
+
+    console.log('Looking for payment with reference:', reference);
+    console.log('Profile ID:', profileId, 'Send Details ID:', sendDetailsId);
+    console.log('Existing payment found:', existingPayment);
+    console.log('Find error:', findError);
+
+    // Prepare update data
     const updateData = {
       transaction_id: transaction.id,
       transaction_status: transaction.status,
@@ -99,19 +141,69 @@ export async function GET(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    const { data: updatedPayment, error: updateError } = await supabase
-      .from('details_payment')
-      .update(updateData)
-      .eq('paystack_ref', reference)
-      .select('*')
-      .single();
+    let updatedPayment;
 
-    if (updateError) {
-      console.error('Failed to update payment record:', updateError);
-      const baseUrl = getBaseUrl(request);
-      return NextResponse.redirect(
-        new URL('/details-payment/failed?error=database_update_failed', baseUrl)
-      );
+    if (existingPayment) {
+      // Update existing payment record using the ID
+      const { data: updated, error: updateError } = await supabase
+        .from('details_payment')
+        .update({
+          ...updateData,
+          paystack_ref: reference, // Ensure reference is set correctly
+        })
+        .eq('id', existingPayment.id)
+        .select('*')
+        .single();
+
+      if (updateError) {
+        console.error('Failed to update payment record:', updateError);
+        console.error('Update error details:', JSON.stringify(updateError, null, 2));
+        console.error('Payment ID:', existingPayment.id);
+        const baseUrl = getBaseUrl(request);
+        return NextResponse.redirect(
+          new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError.message)}`, baseUrl)
+        );
+      }
+      updatedPayment = updated;
+      console.log('✅ Payment record updated successfully:', updatedPayment.id);
+    } else {
+      // Payment record doesn't exist, create it
+      // Get profile email for the payment record
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email_address')
+        .eq('id', profileId)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Failed to fetch profile for payment record:', profileError);
+        const baseUrl = getBaseUrl(request);
+        return NextResponse.redirect(
+          new URL('/details-payment/failed?error=profile_not_found', baseUrl)
+        );
+      }
+
+      const { data: created, error: createError } = await supabase
+        .from('details_payment')
+        .insert({
+          profile_id: Number(profileId),
+          send_details_id: Number(sendDetailsId),
+          paystack_ref: reference,
+          payment_email: profile.email_address || transaction.customer?.email || '',
+          ...updateData,
+        })
+        .select('*')
+        .single();
+
+      if (createError) {
+        console.error('Failed to create payment record:', createError);
+        console.error('Create error details:', JSON.stringify(createError, null, 2));
+        const baseUrl = getBaseUrl(request);
+        return NextResponse.redirect(
+          new URL(`/details-payment/failed?error=database_create_failed&details=${encodeURIComponent(createError.message)}`, baseUrl)
+        );
+      }
+      updatedPayment = created;
     }
 
     // If payment successful, send contact details and receipt
