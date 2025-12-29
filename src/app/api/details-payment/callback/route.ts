@@ -95,9 +95,9 @@ export async function GET(request: NextRequest) {
       .from('details_payment')
       .select('*')
       .eq('paystack_ref', reference)
-      .single();
+      .maybeSingle();
 
-    if (paymentByRef) {
+    if (paymentByRef && !refError) {
       existingPayment = paymentByRef;
     } else {
       // If not found by reference, try to find by profile_id and send_details_id
@@ -110,9 +110,9 @@ export async function GET(request: NextRequest) {
         .eq('payment_status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (paymentByIds) {
+      if (paymentByIds && !idsError) {
         existingPayment = paymentByIds;
         // Update the paystack_ref to match the actual reference
         await supabase
@@ -153,15 +153,16 @@ export async function GET(request: NextRequest) {
         })
         .eq('id', existingPayment.id)
         .select('*')
-        .single();
+        .maybeSingle();
 
-      if (updateError) {
+      if (updateError || !updated) {
         console.error('Failed to update payment record:', updateError);
         console.error('Update error details:', JSON.stringify(updateError, null, 2));
         console.error('Payment ID:', existingPayment.id);
+        console.error('Updated data:', updated);
         const baseUrl = getBaseUrl(request);
         return NextResponse.redirect(
-          new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError.message)}`, baseUrl)
+          new URL(`/details-payment/failed?error=database_update_failed&details=${encodeURIComponent(updateError?.message || 'No record updated')}`, baseUrl)
         );
       }
       updatedPayment = updated;
@@ -189,11 +190,11 @@ export async function GET(request: NextRequest) {
           profile_id: Number(profileId),
           send_details_id: Number(sendDetailsId),
           paystack_ref: reference,
-          payment_email: profile.email_address || transaction.customer?.email || '',
+          payment_email: profile?.email_address || transaction.customer?.email || '',
           ...updateData,
         })
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (createError) {
         console.error('Failed to create payment record:', createError);
@@ -214,14 +215,14 @@ export async function GET(request: NextRequest) {
           .from('send_details')
           .select('*')
           .eq('id', sendDetailsId)
-          .single();
+          .maybeSingle();
 
         // Get profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email_address, full_name')
           .eq('id', profileId)
-          .single();
+          .maybeSingle();
 
         if (!detailsError && !profileError && sendDetails && profile && profile.email_address) {
           // Send contact details email
