@@ -3,6 +3,8 @@ import Navbar from '@/components/Navbar';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 async function getBaseUrlFromHeaders(): Promise<string> {
   const h = await headers();
   const xfProto = h.get('x-forwarded-proto') || 'https';

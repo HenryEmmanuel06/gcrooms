@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
-export default function DetailsPaymentFailedPage() {
+function DetailsPaymentFailedContent() {
   const searchParams = useSearchParams();
 
   const error = searchParams.get('error') || undefined;
@@ -104,6 +104,23 @@ export default function DetailsPaymentFailedPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function DetailsPaymentFailedPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Navbar />
+        <div className="flex items-center justify-center p-4 mt-[80px] h-[100vh]" style={{ maxHeight: "900px" }}>
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </>
+    }>
+      <DetailsPaymentFailedContent />
+    </Suspense>
   );
 }
 
